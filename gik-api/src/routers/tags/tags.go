@@ -13,9 +13,9 @@ type tag struct {
 }
 
 func ListTags(c *gin.Context) {
-	search := c.Query("search")
+	name := c.Query("name")
 	tags := []types.Tag{}
-	database.Database.Model(&types.Tag{}).Where("name LIKE ?", "%"+search+"%").Order("name").Find(&tags)
+	database.Database.Model(&types.Tag{}).Where("name LIKE ?", "%"+name+"%").Order("name").Find(&tags)
 
 	var tagNames []string
 	for _, tag := range tags {

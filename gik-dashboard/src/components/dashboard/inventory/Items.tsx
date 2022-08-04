@@ -191,13 +191,11 @@ const EditTagsModal = ({
     setOpened,
     refresh,
     tags,
-    search,
       }: {
     opened: boolean;
     setOpened: Dispatch<SetStateAction<boolean>>;
-    refresh: () => Promise<void>;
+    refresh: (search: string) => Promise<void>;
     tags: string[];
-    search: () => Promise<void>;
 }) => {
     const [name, setName] = useState("");
 
@@ -231,7 +229,7 @@ const EditTagsModal = ({
             <Modal
                 opened={opened}
                 onClose={() => {
-                    refresh();
+                    refresh("");
                     setOpened(false);
                 }}
                 title="Edit Tags"
@@ -241,8 +239,10 @@ const EditTagsModal = ({
                         <InputWrapper>
                             <TextInput
                                 placeholder="Search Tags"
-                                onChange={(e: any) =>
-                                    setName(e.target.value)
+                                onChange={async (e: any) => {
+                                    //await search()
+                                    await refresh(e.target.value)
+                                }
                                 }
                             />
                         </InputWrapper>{/*
@@ -293,9 +293,6 @@ export const ItemsManager = () => {
     const [showCreationModal, setShowCreationModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
 
-    const setTagsSearch = (search: string) => {
-        setSearchQueryTags(search)
-    }
 
     const exportCSV = async () => {
         const response = await fetch(
@@ -320,10 +317,10 @@ export const ItemsManager = () => {
         window.open(url, "_blank");
     };
 
-    const fetchTags = async () => {
+    const fetchTags = async (search: string) => {
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/tags/list?name=${searchQueryTags}`,
+            `${process.env.REACT_APP_API_URL}/tags/list?name=${search}`,
             {
                 credentials: "include",
             }
@@ -370,13 +367,13 @@ export const ItemsManager = () => {
 
     useEffect(() => {
         fetchItems();
-        fetchTags();
+        fetchTags("");
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
         fetchItems();
-        fetchTags();
+        fetchTags("");
     }, [searchQuery]);
 
     return (
@@ -390,7 +387,6 @@ export const ItemsManager = () => {
                 opened={showTagsModal}
                 setOpened={setShowTagsModal}
                 refresh={fetchTags}
-                search={fetchTags} //TODO
                 tags={tags}
             />
             {/* @ts-ignore */}

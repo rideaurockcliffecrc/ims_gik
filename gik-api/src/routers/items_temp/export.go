@@ -11,7 +11,7 @@ import (
 
 func ExportItems(c *gin.Context) {
 	type export struct {
-		ID            uint    `gorm:"primaryKey;autoIncrement:false; csv:"-"`
+		ID            uint    `gorm:"primaryKey;autoIncrement:false" csv:"-"`
 		ProductID     uint    `json:"id" csv:"id" gorm:"primaryKey;column:product_id;type:bigint;autoIncrement:true;not null"`
 		SKU           string  `json:"sku" csv:"sku" gorm:"type:varchar(100)"`
 		Price         float32 `json:"price" csv:"price"`

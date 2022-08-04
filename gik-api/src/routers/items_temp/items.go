@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"math"
 	"strconv"
+	"strings"
 )
 
 type item struct {
@@ -35,8 +36,11 @@ func ListItem(c *gin.Context) {
 	if page == "" {
 		page = "1"
 	}
-
-	search := c.Query("search")
+	
+	name := c.Query("name")
+	sku := c.Query("sku")
+	tags := strings.Split(c.Query("tags"),",")
+	fmt.Println(tags)
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -54,8 +58,14 @@ func ListItem(c *gin.Context) {
 
 	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
 
-	if search != "" {
-		baseQuery = baseQuery.Where("name LIKE ?", "%"+search+"%")
+	for _,tag := range tags {
+		baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
+	}
+	if name != "" {
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
+	}
+	if sku != "" {
+		baseQuery = baseQuery.Where("sku LIKE ?", "%"+sku+"%")
 	}
 
 	var totalCount int64

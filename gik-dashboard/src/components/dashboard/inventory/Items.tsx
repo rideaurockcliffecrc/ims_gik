@@ -14,7 +14,7 @@ import {
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash} from "tabler-icons-react";
+import { CirclePlus, Tags, Trash, TableExport} from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 
@@ -190,15 +190,19 @@ const EditTagsModal = ({
     opened,
     setOpened,
     refresh,
+    tags,
+    search,
       }: {
     opened: boolean;
     setOpened: Dispatch<SetStateAction<boolean>>;
     refresh: () => Promise<void>;
+    tags: string[];
+    search: () => Promise<void>;
 }) => {
     const [name, setName] = useState("");
 
-    const [tags, setTags] = useState<string[]>([]);
-
+    //const [tags, setTags] = useState<string[]>([]);
+/*
     const fetchTags = async () => {
 
         const response = await fetch(
@@ -220,7 +224,7 @@ const EditTagsModal = ({
 
     useEffect(() => {
         fetchTags();
-    })
+    })*/
 
     return (
         <>
@@ -275,6 +279,8 @@ const EditTagsModal = ({
 
 export const ItemsManager = () => {
     const [items, setItems] = useState<Item[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
+    const [searchQueryTags, setSearchQueryTags] = useState("");
 
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -286,6 +292,53 @@ export const ItemsManager = () => {
 
     const [showCreationModal, setShowCreationModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
+
+    const setTagsSearch = (search: string) => {
+        setSearchQueryTags(search)
+    }
+
+    const exportCSV = async () => {
+        const response = await fetch(
+            `${
+                process.env.REACT_APP_API_URL
+            }/itemstemp/export`,
+            {
+                credentials: "include",
+            }
+        );
+
+        // data is arraybuffer
+        const data = await response.arrayBuffer();
+
+        // convert to blob
+        const blob = new Blob([data], { type: "text/csv" });
+
+        // create a url from the blob
+        const url = URL.createObjectURL(blob);
+
+        // open the url with the pdf viewer
+        window.open(url, "_blank");
+    };
+
+    const fetchTags = async () => {
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/tags/list?name=${searchQueryTags}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: string[];
+        } = await response.json();
+
+        if (data.success) {
+            setTags(data.data);
+        }
+    };
+
 
     const fetchItems = async () => {
         setLoading(true);
@@ -317,11 +370,13 @@ export const ItemsManager = () => {
 
     useEffect(() => {
         fetchItems();
+        fetchTags();
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
         fetchItems();
+        fetchTags();
     }, [searchQuery]);
 
     return (
@@ -334,13 +389,15 @@ export const ItemsManager = () => {
             <EditTagsModal
                 opened={showTagsModal}
                 setOpened={setShowTagsModal}
-                refresh={fetchItems}
+                refresh={fetchTags}
+                search={fetchTags} //TODO
+                tags={tags}
             />
             {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
                     <h3>Items</h3>
-                    <Group spacing="xs">
+                    <Group spacing={0}>
                         <ActionIcon
                             sx={{
                                 height: "4rem",
@@ -414,7 +471,16 @@ export const ItemsManager = () => {
                     )}
                 </Center>
                 <Space h="md" />
-                <Group position="right">
+                <Group position="apart">
+                    <ActionIcon
+                        sx={{
+                            height: "4rem",
+                            width: "4rem",
+                        }}
+                        onClick={exportCSV}
+                    >
+                        <TableExport />
+                    </ActionIcon>
                     <Button
                         onClick={fetchItems}
                         color="green"

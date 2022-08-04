@@ -5,7 +5,7 @@
 GIK_Web
 docker-compose.yml
 
-/node_modules
+/gik-dashboard/node_modules
 /.pnp
 .pnp.js
 
@@ -13,10 +13,11 @@ docker-compose.yml
 /coverage
 
 # production
-/build
+/gik-dashboard/build
 
 # misc
-.idea/
+/gik-api/.idea/
+/gik-dashboard/.idea/
 .DS_Store
 .env.local
 .env.development.local
@@ -27,4 +28,3 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cache
-gik-api/.idea/vcs.xml

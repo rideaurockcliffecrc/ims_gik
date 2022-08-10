@@ -1,5 +1,8 @@
 .env
 .idea/
+
+/gik-api/.cert/
+/gik-dashboard/.cert/
 .vscode/
 .DS_Store
 GIK_Web

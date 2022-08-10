@@ -40,6 +40,6 @@ func main() {
 
 	fmt.Printf("\nServer running at %s:%s\n", env.WebserverHost, env.WebserverPort)
 
-	server.ListenAndServe()
+	server.ListenAndServeTLS(".cert/server.crt", ".cert/server.key")
 
 }

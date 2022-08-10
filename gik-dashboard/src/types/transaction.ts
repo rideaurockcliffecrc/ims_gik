@@ -9,7 +9,10 @@ export interface Transaction {
 
 export interface TransactionItem {
     ID: number;
-    transactionId: number;
+    name: string;
+    sku: string;
+    size: string;
+    price: number;
     quantity: number;
-    productId: number;
+    totalValue: number;
 }

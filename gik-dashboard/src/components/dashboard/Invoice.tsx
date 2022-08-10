@@ -17,7 +17,7 @@ import { containerStyles } from "../../styles/container";
 
 interface invoiceItem {
     name: string;
-    description: string;
+    size: string;
     sku: string;
     price: number;
     quantity: number;
@@ -42,7 +42,7 @@ const InvoiceItemRow = ({
         <>
             <tr>
                 <td>{item.name}</td>
-                <td>{item.description}</td>
+                <td>{item.size}</td>
                 <td>{item.sku}</td>
                 <td>{item.price}</td>
                 <td>{item.quantity}</td>
@@ -142,9 +142,9 @@ const InvoiceConfiguratorModal = ({
                     />
                 </InputWrapper>
                 <Space h="md" />
-                <InputWrapper label="Item Description" required>
+                <InputWrapper label="Item Size" required>
                     <Textarea
-                        placeholder="Item Description"
+                        placeholder="Item Size"
                         onChange={(e) => setItemDesc(e.target.value)}
                         required
                     />
@@ -187,7 +187,7 @@ const InvoiceConfiguratorModal = ({
                             setInvoiceItems([
                                 {
                                     name: itemName,
-                                    description: itemDesc,
+                                    size: itemDesc,
                                     sku: itemSku,
                                     price: itemPrice,
                                     quantity: itemQuantity,
@@ -209,7 +209,7 @@ const InvoiceConfiguratorModal = ({
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Desc</th>
+                            <th>Size</th>
                             <th>SKU</th>
                             <th>$</th>
                             <th>Qty</th>

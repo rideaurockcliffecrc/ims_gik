@@ -24,10 +24,11 @@ type item struct {
 }
 
 type post struct {
-	ProductID     uint    `json:"id"`
-	SKU           string  `json:"sku"`
-	Name          string  `json:"name"`
-	StockQuantity float32 `json:"stockQuantity"`
+	ID       uint    `json:"id"`
+	SKU      string  `json:"sku"`
+	Name     string  `json:"name"`
+	Size     string  `json:"size"`
+	Quantity float32 `json:"quantity"`
 }
 
 const (
@@ -59,7 +60,7 @@ func AttentionRequired(c *gin.Context) {
 
 	offset = (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&types.Item{}).Where("stock_quantity < ?", max).Where("name is not null").Order("stock_quantity desc")
+	baseQuery := database.Database.Model(&types.Item2{}).Where("quantity < ?", max).Where("name is not null").Order("quantity desc").Order("sku desc").Order("size desc")
 
 	itemCount := int64(0)
 	baseQuery.Count(&itemCount)

@@ -37,9 +37,9 @@ const ItemRow = ({ item }: { item: Item }) => {
     return (
         <>
             <tr>
-                <td>{item.id}</td>
-                <td>{item.sku || "None"}</td>
                 <td>{item.name}</td>
+                <td>{item.sku || "None"}</td>
+                <td>{item.size}</td>
                 <td>{item.quantity}</td>
             </tr>
         </>
@@ -160,9 +160,9 @@ const TrendingItems = () => {
                     <Table>
                         <thead>
                             <tr>
-                                <th>Product ID</th>
-                                <th>SKU</th>
                                 <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
                                 <th>Stock</th>
                             </tr>
                         </thead>
@@ -248,9 +248,9 @@ const AttentionRequired = () => {
                     <Table>
                         <thead>
                             <tr>
-                                <th>Product ID</th>
-                                <th>SKU</th>
                                 <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
                                 <th>Stock</th>
                             </tr>
                         </thead>
@@ -493,7 +493,7 @@ const Analytics = () => {
                         flexGrow: 1,
                     }}
                 >
-                    <h2>Total Stock</h2>
+                    <h2>Net Stock Change</h2>
                     <Skeleton
                         height={"90%"}
                         width={"100%"}

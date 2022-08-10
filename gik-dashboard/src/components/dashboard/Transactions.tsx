@@ -14,16 +14,80 @@ import {
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { CirclePlus, Trash } from "tabler-icons-react";
+import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
+
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import { Transaction, TransactionItem } from "../../types/transaction";
 import TfaSetup from "./TfaSetup";
+import {TagRow} from "./inventory/Items";
+
 
 interface editingTransactionItem {
     id: number;
     quantity: number;
 }
+
+
+const TransactionItemModal =
+    ({
+         opened,
+         setOpened,
+         refresh,
+         items,
+     }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        refresh: (search: string) => Promise<void>;
+        items: TransactionItem[];
+}) => {
+        //const [items, setItems] = useState<TransactionItem[]>([]);
+
+        console.log(items)
+
+        return (
+            <>
+                <Modal
+                    opened={opened}
+                    onClose={() => {
+                        refresh("");
+                        setOpened(false);
+                    }}
+                    title="Transaction Items"
+                    size="50%"
+                >
+                    <Box sx={containerStyles}>
+                        <Space h="md" />
+                        <Table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {items.map((item) => (
+                                <tr key={item.ID}>
+                                    <td>{item.name}</td>
+                                    <td>{item.sku}</td>
+                                    <td>{item.size}</td>
+                                    <td>{item.price}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>{item.totalValue}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+
+                    </Box>
+                </Modal>
+            </>
+    );
+};
 
 const CreateTransactionModal = ({
     opened,
@@ -263,6 +327,14 @@ const CreateTransactionModal = ({
     );
 };
 
+interface invoiceItem {
+    name: string;
+    size: string;
+    sku: string;
+    price: number;
+    quantity: number;
+}
+
 const TransactionComponent = ({
     transaction,
     refresh,
@@ -270,10 +342,44 @@ const TransactionComponent = ({
     transaction: Transaction;
     refresh: () => Promise<void>;
 }) => {
-    const [itemIds, setItemIds] = useState<number[]>([]);
 
     const [preparerUsername, setPreparerUsername] = useState<string>("");
     const [clientName, setClientName] = useState<string>("");
+
+
+    const [showItemModal, setShowItemModal] = useState(false);
+    const [items, setItems] = useState<TransactionItem[]>([]);
+    const [invoiceItems, setInvoiceItems] = useState<invoiceItem[]>([]);
+
+
+    const generateInvoice = async () => {
+
+        getItems()
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/invoice/generate`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                method: "POST",
+                body: JSON.stringify({
+                    name: clientName,
+                    address: "customerAddress",
+                    data: items,
+                }),
+            }
+        );
+
+        const data = await response.arrayBuffer();
+
+        const blob = new Blob([data], { type: "application/pdf" });
+
+        const url = URL.createObjectURL(blob);
+
+        window.open(url);
+    };
 
     const getClientName = async () => {
         const response = await fetch(
@@ -316,12 +422,19 @@ const TransactionComponent = ({
     }, []);
 
     const init = async () => {
-        await getTransactionItems();
+        //await getTransactionItems();
         await getPreparerUsername();
         await getClientName();
     };
 
-    const getTransactionItems = async () => {
+    const showTransactionItems = async () => {
+
+        getItems()
+        setShowItemModal(true)
+
+    }
+
+    const getItems = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/transaction/items?id=${transaction.ID}`,
             {
@@ -335,7 +448,7 @@ const TransactionComponent = ({
         } = await response.json();
 
         if (data.success) {
-            setItemIds(data.data.map((item) => item.productId));
+            setItems(data.data);
         }
     };
 
@@ -367,14 +480,33 @@ const TransactionComponent = ({
                 <td>{transaction.type ? "Import" : "Export"}</td>
                 <td>{preparerUsername}</td>
                 <td>{clientName}</td>
-                <td>{itemIds.join(", ")}</td>
                 <td>{transaction.totalQuantity}</td>
                 <td>
-                    <ActionIcon variant="default" onClick={doDelete}>
-                        <Trash />
-                    </ActionIcon>
+                    <Group>
+                        <ActionIcon variant="default" onClick={doDelete}>
+                            <Trash />
+                        </ActionIcon>
+                        <ActionIcon
+                            onClick={showTransactionItems}
+                            variant="default"
+                        >
+                            <ListDetails />
+                        </ActionIcon>
+                        <ActionIcon
+                            onClick={generateInvoice}
+                            variant="default"
+                        >
+                            <FileInvoice />
+                        </ActionIcon>
+                    </Group>
                 </td>
             </tr>
+            <TransactionItemModal
+                opened={showItemModal}
+                setOpened={setShowItemModal}
+                refresh={showTransactionItems}
+                items={items}
+            />
         </>
     );
 };
@@ -441,7 +573,6 @@ export const TransactionManager = () => {
                             <th>Preparer</th>
                             <th>Customer</th>
                             <th>Item</th>
-                            <th>Amount</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

@@ -11,6 +11,7 @@ import {
     Table,
     Modal,
     ActionIcon,
+    MultiSelect
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
@@ -280,15 +281,20 @@ const EditTagsModal = ({
 export const ItemsManager = () => {
     const [items, setItems] = useState<Item[]>([]);
     const [tags, setTags] = useState<string[]>([]);
-    const [searchQueryTags, setSearchQueryTags] = useState("");
 
     const [loading, setLoading] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchQueryTyping, setSearchQueryTyping] = useState("");
+    const [nameQuery, setNameQuery] = useState("");
+    const [nameQueryTyping, setNameQueryTyping] = useState("");
+
+    const [skuQuery, setSkuQuery] = useState("");
+    const [skuQueryTyping, setSkuQueryTyping] = useState("");
+
+    const [tagsQuery, setTagsQuery] = useState("");
+    const [tagsQueryTyping, setTagsQueryTyping] = useState("");
 
     const [showCreationModal, setShowCreationModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
@@ -341,7 +347,7 @@ export const ItemsManager = () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/list?page=${currentPage}&search=${searchQuery}`,
+            `${process.env.REACT_APP_API_URL}/itemstemp/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
             {
                 credentials: "include",
             }
@@ -374,7 +380,7 @@ export const ItemsManager = () => {
         setCurrentPage(1);
         fetchItems();
         fetchTags("");
-    }, [searchQuery]);
+    }, [nameQuery, tagsQuery, skuQuery]);
 
     return (
         <>
@@ -415,25 +421,50 @@ export const ItemsManager = () => {
                     </Group>
                 </Group>
                 <Space h="md" />
+
+
                 <Group>
                     <InputWrapper>
                         <TextInput
                             placeholder="Search Items"
                             onChange={(e: any) =>
-                                setSearchQueryTyping(e.target.value)
+                                setNameQueryTyping(e.target.value)
                             }
                         />
                     </InputWrapper>
+                    <InputWrapper>
+                        <TextInput
+                            placeholder="Search SKU"
+                            onChange={(e: any) =>
+                                setSkuQueryTyping(e.target.value)
+                            }
+                        />
+                    </InputWrapper>
+                    <MultiSelect
+                        data={tags}
+                        placeholder="Search Tags"
+                        clearButtonLabel="Clear selection"
+                        clearable
+                        searchable
+                        onChange={(e: any) => {
+                                setTagsQueryTyping(e)
+                            }
+                        }
+                    />
                     <Button
                         color="green"
                         onClick={() => {
-                            setSearchQuery(searchQueryTyping);
+                            setNameQuery(nameQueryTyping);
+                            setSkuQuery(skuQueryTyping);
+                            setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >
                         Search
                     </Button>
                 </Group>
+
+
                 <Space h="md" />
                 <Table>
                     <thead>

@@ -37,7 +37,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "startSecire": "export HTTPS=true&&SSL_CRT_FILE=.cert/server.crt&&SSL_KEY_FILE=.cert/server.key react-scripts start",
+    "startSecure": "export HTTPS=true&&SSL_CRT_FILE=.cert/server.crt&&SSL_KEY_FILE=.cert/server.key react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

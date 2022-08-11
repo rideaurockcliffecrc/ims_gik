@@ -42,9 +42,6 @@ const TransactionItemModal =
         items: TransactionItem[];
 }) => {
         //const [items, setItems] = useState<TransactionItem[]>([]);
-
-        console.log(items)
-
         return (
             <>
                 <Modal
@@ -163,13 +160,29 @@ const CreateTransactionModal = ({
 
         const data = await response.json();
 
+        //console.log(data);
+
+
+
         if (data.success) {
-            data.data.map((client: Client) => {
-                setSuggestData([
-                    ...suggestData,
-                    { value: client.ID, label: client.name },
-                ]);
-            });
+
+            setSuggestData([])
+
+            let clients = data.data
+
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < data.data.length; i++) {
+                let name = clients[i].name
+                let id = clients[i].ID
+                temp = [...temp, {value: id,label:name},]
+            }
+
+            setSuggestData(temp)
+
+
         }
     };
 
@@ -354,7 +367,7 @@ const TransactionComponent = ({
 
     const generateInvoice = async () => {
 
-        getItems()
+        await getItems()
 
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/invoice/generate`,
@@ -425,6 +438,7 @@ const TransactionComponent = ({
         //await getTransactionItems();
         await getPreparerUsername();
         await getClientName();
+        await getItems()
     };
 
     const showTransactionItems = async () => {

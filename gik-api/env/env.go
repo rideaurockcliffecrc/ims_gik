@@ -15,6 +15,8 @@ var MysqlURi string
 
 var SkipMigrations bool
 
+var HTTPS bool
+
 var CookieDomain string
 
 var JWTSigningPassword string
@@ -31,6 +33,8 @@ func SetEnv() {
 	SkipMigrations = os.Getenv("SKIP_MIGRATIONS") == "true"
 
 	DebugMode = os.Getenv("DEBUG_MODE") == "true"
+
+	DebugMode = os.Getenv("HTTPS") == "true"
 
 	MysqlURi = os.Getenv("MYSQL_URI")
 	if MysqlURi == "" {

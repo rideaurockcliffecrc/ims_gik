@@ -93,6 +93,7 @@ func InitRouter() *gin.Engine {
 		items2Api.Use(middleware.AdvancedLoggingMiddleware())
 		items2Api.GET("/list", items_temp.ListItem)
 		items2Api.GET("/export", items_temp.ExportItems)
+		items2Api.GET("/suggest", items_temp.GetAutoSuggest)
 		items2Api.PUT("/add", items_temp.AddItem)
 		items2Api.PATCH("/update", items_temp.UpdateItem)
 		items2Api.DELETE("/delete", items_temp.DeleteLocation)

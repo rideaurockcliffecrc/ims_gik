@@ -34,7 +34,7 @@ func SetEnv() {
 
 	DebugMode = os.Getenv("DEBUG_MODE") == "true"
 
-	DebugMode = os.Getenv("HTTPS") == "true"
+	HTTPS = os.Getenv("HTTPS") == "true"
 
 	MysqlURi = os.Getenv("MYSQL_URI")
 	if MysqlURi == "" {

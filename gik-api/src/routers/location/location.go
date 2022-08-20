@@ -77,7 +77,7 @@ func ListLocation(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		
+
 		var name string
 
 		database.Database.Model(&types.Item2{}).Where("sku = ?", location.SKU).Distinct().Pluck("name", &name)
@@ -276,4 +276,15 @@ func GetScannedData(c *gin.Context) {
 
 	utils.CreateSimpleLog(c, "Scanned location "+name+" "+letter)
 
+}
+
+func ListLocationSKU(c *gin.Context) {
+	name := c.Query("name")
+	letter := c.Query("letter")
+
+	var sku string
+
+	database.Database.Model(&types.Location{}).Where("name = ?", name).Where("letter = ?", letter).Distinct("sku").Pluck("sku", &sku)
+
+	c.JSON(200, gin.H{"success": true, "sku": sku})
 }

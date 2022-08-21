@@ -23,6 +23,11 @@ import type { Location } from "../../../types/location";
 
 import styles from "../../../styles/Location.module.scss";
 
+interface data {
+    name: string;
+    sku: string;
+}
+
 export const CreateLocationModal = ({
     opened,
     setOpened,
@@ -43,7 +48,7 @@ export const CreateLocationModal = ({
 
     const fetchSuggestions = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/suggest?query=${itemName}`,
+            `${process.env.REACT_APP_API_URL}/itemstemp/suggest?query=${itemName}`,
             {
                 credentials: "include",
             }
@@ -52,10 +57,22 @@ export const CreateLocationModal = ({
         const data: {
             success: boolean;
             message: string;
-            data: string[];
+            data: data[];
         } = await response.json();
 
-        setSuggestions(data.data);
+
+        let temp: string[]
+
+        temp = []
+
+        if (data.success) {
+
+            for (let i = 0; i < data.data.length; i++) {
+                temp = [...temp, data.data[i].name]
+            }
+        }
+
+        setSuggestions(temp);
     };
 
     useEffect(() => {
@@ -63,6 +80,7 @@ export const CreateLocationModal = ({
     }, [itemName]);
 
     const doCreate = async () => {
+        setItemName("")
         setLoading(true);
 
         const response = await fetch(
@@ -76,7 +94,7 @@ export const CreateLocationModal = ({
                 body: JSON.stringify({
                     name: locationName,
                     letter: locationLetter,
-                    item: itemName,
+                    productName: itemName,
                 }),
             }
         );
@@ -244,7 +262,7 @@ export const LocationComponent = ({
                 </td>
                 <td>{location.name}</td>
                 <td>{location.letter}</td>
-                <td>{location.product.name}</td>
+                <td>{location.productName}</td>
                 <td>
                     <Group>
                         <ActionIcon variant="default" onClick={doDelete}>

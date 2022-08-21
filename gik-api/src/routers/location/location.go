@@ -14,23 +14,25 @@ type location struct {
 	ID     int
 	Name   string `json:"name"`
 	Letter string `json:"letter"`
-	ItemID int    `json:"itemId"`
+	SKU    string `json:"sku"`
 }
 
 type lookupData struct {
 	location
-	Item types.Item `json:"product"`
+	Item types.Item2 `json:"product"`
 }
 
 type listData struct {
 	location
-	Item types.Item `json:"product"`
+	Item        types.Item2 `json:"product"`
+	ProductName string      `json:"productName"`
 }
 
 func ListLocation(c *gin.Context) {
 	name := c.Query("name")
 	letter := c.Query("letter")
-	product := c.Query("product")
+	productName := c.Query("productName")
+	sku := c.Query("sku")
 
 	locations := []location{}
 
@@ -44,15 +46,17 @@ func ListLocation(c *gin.Context) {
 		baseQuery = baseQuery.Where("letter = ?", letter)
 	}
 
-	if product != "" {
-		// check if it's an integer
-		if _, err := strconv.Atoi(product); err == nil {
-			// it's an integer
-			baseQuery = baseQuery.Where("item_id = ?", product)
-		} else {
-			// it's a product name
-			baseQuery = baseQuery.Where("item_id IN (SELECT product_id FROM AP6_wc_product_meta_lookup WHERE name LIKE ?)", fmt.Sprintf("%%%s%%", product))
-		}
+	if productName != "" {
+
+		skuAlt := ""
+
+		database.Database.Model(&types.Item2{}).Where("name = ?", productName).Distinct().Pluck("sku", &skuAlt)
+
+		baseQuery = baseQuery.Where("sku = ?", skuAlt)
+	}
+
+	if sku != "" {
+		baseQuery = baseQuery.Where("sku = ?", sku)
 	}
 
 	err := baseQuery.Find(&locations).Error
@@ -67,16 +71,21 @@ func ListLocation(c *gin.Context) {
 	response := []listData{}
 
 	for _, location := range locations {
-		var item types.Item
-		err := database.Database.Model(&types.Item{}).Where("product_id = ?", location.ItemID).Scan(&item).Error
+		var item types.Item2
+		err := database.Database.Model(&types.Item2{}).Where("sku = ?", location.SKU).First(&item).Error
 
 		if err != nil {
 			continue
 		}
 
+		var name string
+
+		database.Database.Model(&types.Item2{}).Where("sku = ?", location.SKU).Distinct().Pluck("name", &name)
+
 		response = append(response, listData{
-			location: location,
-			Item:     item,
+			location:    location,
+			Item:        item,
+			ProductName: name,
 		})
 
 	}
@@ -94,7 +103,7 @@ func UpdateLocation(c *gin.Context) {
 		return
 	}
 
-	database.Database.Model(&location{}).Where("name = ?", json.Name).Update("item_id", json.ItemID)
+	database.Database.Model(&location{}).Where("name = ?", json.Name).Update("sku", json.SKU)
 
 	c.JSON(200, gin.H{
 		"success": true,
@@ -108,7 +117,8 @@ func UpdateLocation(c *gin.Context) {
 type addRequest struct {
 	Name   string `json:"name" binding:"required"`
 	Letter string `json:"letter" binding:"required"`
-	Item   string `json:"item" binding:"required"`
+	//SKU         string `json:"sku" binding:"required"`
+	ProductName string `json:"productName" binding:"required"`
 }
 
 func AddLocation(c *gin.Context) {
@@ -118,41 +128,23 @@ func AddLocation(c *gin.Context) {
 			"success": false,
 			"message": "Invalid fields",
 		})
+		fmt.Println(json)
 		return
 	}
 
-	itemInt, err := strconv.Atoi(json.Item)
+	//TODO add check to see if exists
 
-	// check if Item is an integer
-	if err == nil {
-		// it's an integer
-		err := database.Database.Create(&types.Location{Name: json.Name, Letter: json.Letter, ItemID: itemInt}).Error
-		if err != nil {
-			c.JSON(400, gin.H{
-				"success": false,
-				"message": "Unable to create location",
-			})
-			return
-		}
-	} else {
-		// it's a product name
-		var item types.Item
-		err := database.Database.Model(&types.Item{}).Where("name = ?", json.Item).Scan(&item).Error
-		if err != nil {
-			c.JSON(400, gin.H{
-				"success": false,
-				"message": "Unable to find by product name. Try the ID instead.",
-			})
-			return
-		}
-		err = database.Database.Create(&location{Name: json.Name, Letter: json.Letter, ItemID: int(item.ProductID)}).Error
-		if err != nil {
-			c.JSON(400, gin.H{
-				"success": false,
-				"message": "Unable to create location",
-			})
-			return
-		}
+	sku := ""
+
+	database.Database.Model(&types.Item2{}).Where("name = ?", json.ProductName).Distinct().Pluck("sku", &sku)
+
+	err := database.Database.Create(&types.Location{Name: json.Name, Letter: json.Letter, SKU: sku}).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Unable to create location",
+		})
+		return
 	}
 
 	c.JSON(200, gin.H{
@@ -227,8 +219,8 @@ func LookupLocation(c *gin.Context) {
 	response := []lookupData{}
 
 	for _, location := range postData {
-		var item types.Item
-		err := database.Database.Model(&types.Item{}).Where("product_id = ?", location.ItemID).Scan(&item).Error
+		var item types.Item2
+		err := database.Database.Model(&types.Item2{}).Where("sku = ?", location.SKU).Scan(&item).Error
 
 		if err != nil {
 			continue
@@ -252,7 +244,7 @@ func GetScannedData(c *gin.Context) {
 	name := c.Query("name")
 	letter := c.Query("letter")
 
-	var product types.Item
+	var product types.Item2
 
 	location := types.Location{}
 	if err := database.Database.Model(&types.Location{}).Where(&types.Location{Name: name, Letter: letter}).Scan(&location).Error; err != nil {
@@ -264,8 +256,8 @@ func GetScannedData(c *gin.Context) {
 		return
 	}
 
-	var item types.Item
-	if err := database.Database.Model(&types.Item{}).Where("product_id = ?", location.ItemID).First(&item).Error; err != nil {
+	var item types.Item2
+	if err := database.Database.Model(&types.Item2{}).Where("sku = ?", location.SKU).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Unable to find item",
@@ -284,4 +276,15 @@ func GetScannedData(c *gin.Context) {
 
 	utils.CreateSimpleLog(c, "Scanned location "+name+" "+letter)
 
+}
+
+func ListLocationSKU(c *gin.Context) {
+	name := c.Query("name")
+	letter := c.Query("letter")
+
+	var sku string
+
+	database.Database.Model(&types.Location{}).Where("name = ?", name).Where("letter = ?", letter).Distinct("sku").Pluck("sku", &sku)
+
+	c.JSON(200, gin.H{"success": true, "sku": sku})
 }

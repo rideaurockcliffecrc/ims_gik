@@ -12,7 +12,7 @@ import (
 )
 
 type item struct {
-	ID       string
+	ID       string  `json:"id"`
 	Name     string  `json:"name"`
 	SKU      string  `json:"sku"`
 	Category string  `json:"category"` //Gender and such
@@ -36,10 +36,10 @@ func ListItem(c *gin.Context) {
 	if page == "" {
 		page = "1"
 	}
-	
+
 	name := c.Query("name")
 	sku := c.Query("sku")
-	tags := strings.Split(c.Query("tags"),",")
+	tags := strings.Split(c.Query("tags"), ",")
 	fmt.Println(tags)
 
 	pageInt, err := strconv.Atoi(page)
@@ -58,7 +58,7 @@ func ListItem(c *gin.Context) {
 
 	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
 
-	for _,tag := range tags {
+	for _, tag := range tags {
 		baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
 	}
 	if name != "" {

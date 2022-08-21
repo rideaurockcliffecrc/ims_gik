@@ -42,6 +42,7 @@ func main() {
 
 	if env.HTTPS {
 		server.ListenAndServeTLS(".cert/server.crt", ".cert/server.key")
+
 	} else {
 		server.ListenAndServe()
 	}

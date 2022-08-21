@@ -76,20 +76,6 @@ func AddTransaction(c *gin.Context) {
 
 	totalQuantity := 0
 
-	for _, product := range json.Products {
-		item := types.Item{}
-		database.Database.Where("id = ?", product.ID).First(&item)
-		/*
-			if item.ProductID == 0 {
-				c.JSON(400, gin.H{
-					"success": false,
-					"message": fmt.Sprintf("%d is an invalid product ID", product.ID),
-				})
-				return
-			}*/
-
-	}
-
 	transaction := types.Transaction{
 		Type:      json.Type,
 		ClientID:  uint(json.ClientID),
@@ -102,7 +88,16 @@ func AddTransaction(c *gin.Context) {
 	for _, product := range json.Products {
 		// get items
 		item := types.Item2{}
-		database.Database.Where("product_id = ?", product.ID).First(&item)
+		baseQuery := database.Database.Model(&types.Item2{}).Where("id = ?", product.ID)
+		baseQuery.First(&item)
+
+		if json.Type {
+			item.Quantity += product.Quantity
+		} else {
+			item.Quantity -= product.Quantity
+		}
+
+		database.Database.Save(item)
 
 		// create transaction item
 		transactionItem := types.TransactionItem{

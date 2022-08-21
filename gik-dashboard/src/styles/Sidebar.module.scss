@@ -4,10 +4,14 @@
     background-color: var(--theme);
     padding-top: 1rem;
     box-sizing: border-box;
+    position: absolute;
+    flex-basis: 20rem;
 
     user-select: none;
 
     @media only screen and (max-width: 800px) {
+        position: relative;
+        flex-basis: fit-content;
         width: 100%;
         height: fit-content;
         box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.711);

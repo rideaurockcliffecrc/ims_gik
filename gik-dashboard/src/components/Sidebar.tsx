@@ -198,12 +198,16 @@ const Sidebar = () => {
                         />
                     </>
                 )}
-                <div style={{bottom: 0, position: 'absolute'}}>
-                    <img src={logo} style={{height: '150px', width: '150px', margin:'33%', marginBottom:'10%'}} alt="Logo" />
-                    <h3 style={{margin: 10, marginLeft:'30%', width:'100%'}}>
-                        Welcome {username}
-                    </h3>
-                </div>
+                {(innerWidth >= 800) && (
+                    <>
+                        <div style={{bottom: 0, position: 'relative', width:'100%'}}>
+                            <img src={logo} style={{width: '50%', margin:'5%', marginLeft:'25%'}} alt="Logo" />
+                            <h3 style={{marginTop:'0%',width:'100%', textAlign:'center'}}>
+                                Welcome {username}
+                            </h3>
+                        </div>
+                    </>
+                )}
             </div>
         </>
     );

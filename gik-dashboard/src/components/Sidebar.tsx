@@ -58,7 +58,7 @@ const Sidebar = () => {
 
     const [username, setUsername] = useState<string>("Analytics");
 
-    const [visible, setVisible] = useState<boolean>(true);
+    const [visible, setVisible] = useState<boolean>(false);
 
     const [innerWidth, setInnerWidth] = useState<number>(window.innerWidth);
 
@@ -133,7 +133,7 @@ const Sidebar = () => {
                         />
                     )}
                 </div>
-                {visible && (
+                {(visible || innerWidth >= 800) && (
                     <>
                         <SidebarItem
                             label="Analytics"

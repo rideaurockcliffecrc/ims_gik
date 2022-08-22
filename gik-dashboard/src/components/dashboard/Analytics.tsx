@@ -37,9 +37,9 @@ const ItemRow = ({ item }: { item: Item }) => {
     return (
         <>
             <tr>
-                <td>{item.id}</td>
-                <td>{item.sku || "None"}</td>
                 <td>{item.name}</td>
+                <td>{item.sku || "None"}</td>
+                <td>{item.size}</td>
                 <td>{item.quantity}</td>
             </tr>
         </>
@@ -68,6 +68,7 @@ const last7Days = () => {
 
 const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
         legend: {
             display: false,
@@ -140,7 +141,7 @@ const TrendingItems = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "var(--bg)",
+                    background: "white",
                     boxShadow: ` 5px 5px 10px var(--neumorphism),
             -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
@@ -160,9 +161,9 @@ const TrendingItems = () => {
                     <Table>
                         <thead>
                             <tr>
-                                <th>Product ID</th>
-                                <th>SKU</th>
                                 <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
                                 <th>Stock</th>
                             </tr>
                         </thead>
@@ -228,7 +229,7 @@ const AttentionRequired = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "var(--bg)",
+                    background: "white",
                     boxShadow: ` 5px 5px 10px var(--neumorphism),
                     -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
@@ -248,9 +249,9 @@ const AttentionRequired = () => {
                     <Table>
                         <thead>
                             <tr>
-                                <th>Product ID</th>
-                                <th>SKU</th>
                                 <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
                                 <th>Stock</th>
                             </tr>
                         </thead>
@@ -348,7 +349,7 @@ const RecentActivity = () => {
                     width: "25rem",
                     height: "20rem",
                     borderRadius: "15px",
-                    background: "var(--bg)",
+                    background: "white",
                     boxShadow: ` 5px 5px 10px var(--neumorphism),
                         -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
@@ -484,7 +485,7 @@ const Analytics = () => {
                         width: "25rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "var(--bg)",
+                        background: "white",
                         boxShadow: ` 5px 5px 10px var(--neumorphism),
                         -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",
@@ -493,7 +494,7 @@ const Analytics = () => {
                         flexGrow: 1,
                     }}
                 >
-                    <h2>Total Stock</h2>
+                    <h2>Net Stock Change</h2>
                     <Skeleton
                         height={"90%"}
                         width={"100%"}
@@ -525,7 +526,7 @@ const Analytics = () => {
                         width: "30rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "var(--bg)",
+                        background: "white",
                         boxShadow: ` 5px 5px 10px var(--neumorphism),
                         -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",
@@ -568,7 +569,7 @@ const Analytics = () => {
                         width: "30rem",
                         height: "20rem",
                         borderRadius: "15px",
-                        background: "var(--bg)",
+                        background: "white",
                         boxShadow: ` 5px 5px 10px var(--neumorphism),
                         -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",

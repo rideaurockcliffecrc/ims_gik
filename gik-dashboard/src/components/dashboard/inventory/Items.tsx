@@ -11,10 +11,11 @@ import {
     Table,
     Modal,
     ActionIcon,
+    MultiSelect
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash} from "tabler-icons-react";
+import { CirclePlus, Tags, Trash, TableExport} from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
 
@@ -65,7 +66,7 @@ const CreateItemModal = ({
 
     const doCreate = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/add`,
+            `${process.env.REACT_APP_API_URL}/items/add`,
             {
                 credentials: "include",
                 method: "PUT",
@@ -190,15 +191,17 @@ const EditTagsModal = ({
     opened,
     setOpened,
     refresh,
+    tags,
       }: {
     opened: boolean;
     setOpened: Dispatch<SetStateAction<boolean>>;
-    refresh: () => Promise<void>;
+    refresh: (search: string) => Promise<void>;
+    tags: string[];
 }) => {
     const [name, setName] = useState("");
 
-    const [tags, setTags] = useState<string[]>([]);
-
+    //const [tags, setTags] = useState<string[]>([]);
+/*
     const fetchTags = async () => {
 
         const response = await fetch(
@@ -220,14 +223,14 @@ const EditTagsModal = ({
 
     useEffect(() => {
         fetchTags();
-    })
+    })*/
 
     return (
         <>
             <Modal
                 opened={opened}
                 onClose={() => {
-                    refresh();
+                    refresh("");
                     setOpened(false);
                 }}
                 title="Edit Tags"
@@ -237,8 +240,10 @@ const EditTagsModal = ({
                         <InputWrapper>
                             <TextInput
                                 placeholder="Search Tags"
-                                onChange={(e: any) =>
-                                    setName(e.target.value)
+                                onChange={async (e: any) => {
+                                    //await search()
+                                    await refresh(e.target.value)
+                                }
                                 }
                             />
                         </InputWrapper>{/*
@@ -275,23 +280,74 @@ const EditTagsModal = ({
 
 export const ItemsManager = () => {
     const [items, setItems] = useState<Item[]>([]);
+    const [tags, setTags] = useState<string[]>([]);
 
     const [loading, setLoading] = useState<boolean>(false);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
 
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchQueryTyping, setSearchQueryTyping] = useState("");
+    const [nameQuery, setNameQuery] = useState("");
+    const [nameQueryTyping, setNameQueryTyping] = useState("");
+
+    const [skuQuery, setSkuQuery] = useState("");
+    const [skuQueryTyping, setSkuQueryTyping] = useState("");
+
+    const [tagsQuery, setTagsQuery] = useState("");
+    const [tagsQueryTyping, setTagsQueryTyping] = useState("");
 
     const [showCreationModal, setShowCreationModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
+
+
+    const exportCSV = async () => {
+        const response = await fetch(
+            `${
+                process.env.REACT_APP_API_URL
+            }/items/export`,
+            {
+                credentials: "include",
+            }
+        );
+
+        // data is arraybuffer
+        const data = await response.arrayBuffer();
+
+        // convert to blob
+        const blob = new Blob([data], { type: "text/csv" });
+
+        // create a url from the blob
+        const url = URL.createObjectURL(blob);
+
+        // open the url with the pdf viewer
+        window.open(url, "_blank");
+    };
+
+    const fetchTags = async (search: string) => {
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/tags/list?name=${search}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: string[];
+        } = await response.json();
+
+        if (data.success) {
+            setTags(data.data);
+        }
+    };
+
 
     const fetchItems = async () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/list?page=${currentPage}&search=${searchQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
             {
                 credentials: "include",
             }
@@ -317,12 +373,14 @@ export const ItemsManager = () => {
 
     useEffect(() => {
         fetchItems();
+        fetchTags("");
     }, [currentPage]);
 
     useEffect(() => {
         setCurrentPage(1);
         fetchItems();
-    }, [searchQuery]);
+        fetchTags("");
+    }, [nameQuery, tagsQuery, skuQuery]);
 
     return (
         <>
@@ -334,13 +392,14 @@ export const ItemsManager = () => {
             <EditTagsModal
                 opened={showTagsModal}
                 setOpened={setShowTagsModal}
-                refresh={fetchItems}
+                refresh={fetchTags}
+                tags={tags}
             />
             {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
                     <h3>Items</h3>
-                    <Group spacing="xs">
+                    <Group spacing={0}>
                         <ActionIcon
                             sx={{
                                 height: "4rem",
@@ -362,25 +421,50 @@ export const ItemsManager = () => {
                     </Group>
                 </Group>
                 <Space h="md" />
+
+
                 <Group>
                     <InputWrapper>
                         <TextInput
                             placeholder="Search Items"
                             onChange={(e: any) =>
-                                setSearchQueryTyping(e.target.value)
+                                setNameQueryTyping(e.target.value)
                             }
                         />
                     </InputWrapper>
+                    <InputWrapper>
+                        <TextInput
+                            placeholder="Search SKU"
+                            onChange={(e: any) =>
+                                setSkuQueryTyping(e.target.value)
+                            }
+                        />
+                    </InputWrapper>
+                    <MultiSelect
+                        data={tags}
+                        placeholder="Search Tags"
+                        clearButtonLabel="Clear selection"
+                        clearable
+                        searchable
+                        onChange={(e: any) => {
+                                setTagsQueryTyping(e)
+                            }
+                        }
+                    />
                     <Button
                         color="green"
                         onClick={() => {
-                            setSearchQuery(searchQueryTyping);
+                            setNameQuery(nameQueryTyping);
+                            setSkuQuery(skuQueryTyping);
+                            setTagsQuery(tagsQueryTyping);
                         }}
                         disabled={loading}
                     >
                         Search
                     </Button>
                 </Group>
+
+
                 <Space h="md" />
                 <Table>
                     <thead>
@@ -414,7 +498,16 @@ export const ItemsManager = () => {
                     )}
                 </Center>
                 <Space h="md" />
-                <Group position="right">
+                <Group position="apart">
+                    <ActionIcon
+                        sx={{
+                            height: "4rem",
+                            width: "4rem",
+                        }}
+                        onClick={exportCSV}
+                    >
+                        <TableExport />
+                    </ActionIcon>
                     <Button
                         onClick={fetchItems}
                         color="green"

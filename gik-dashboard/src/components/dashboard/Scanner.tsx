@@ -6,14 +6,178 @@ import {
     Group,
     InputWrapper,
     TextInput,
-    Space,
+    NumberInput, NumberInputHandlers,
+    Space, Table, ActionIcon, Select,
 } from "@mantine/core";
+import { useForceUpdate } from '@mantine/hooks';
 import { showNotification } from "@mantine/notifications";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
 
 import { QrReader } from "react-qr-reader";
 import { useNavigate } from "react-router-dom";
 import { Item } from "../../types/item";
+import {TransactionItem} from "../../types/transaction";
+import {containerStyles} from "../../styles/container";
+import {CirclePlus, Trash} from "tabler-icons-react";
+
+interface editingTransactionItem {
+    id: number;
+    quantity: number;
+}
+
+const CreateTransactionModal = ({
+                                    opened,
+                                    setOpened,
+                                    refresh,
+                                    transactionItems,
+                                }: {
+    opened: boolean;
+    setOpened: Dispatch<SetStateAction<boolean>>;
+    refresh: () => Promise<void>;
+    transactionItems: editingTransactionItem[]
+}) => {
+
+    const [suggestData, setSuggestData] = useState<any[]>([]);
+
+    const [clientId, setClientId] = useState<number>(0);
+
+    const [transactionType, setTransactionType] = useState<boolean>(false);
+
+    const doSubmit = async () => {
+        console.log(transactionItems)
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/transaction/add`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                method: "PUT",
+                body: JSON.stringify({
+                    clientId,
+                    type: transactionType,
+                    products: transactionItems,
+                }),
+            }
+        );
+
+        const data: {
+            success: boolean;
+            message: string;
+        } = await response.json();
+
+        if (data.success) {
+            setOpened(false);
+            refresh();
+            showNotification({
+                message: "Transaction created successfully.",
+                color: "green",
+                title: "Transaction created",
+            });
+            // setSuggestData([]);
+            return;
+        }
+
+        showNotification({
+            message: data.message,
+            color: "red",
+            title: "Transaction creation failed",
+        });
+    };
+
+    const fetchClients = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/client/list`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data = await response.json();
+
+        //console.log(data);
+
+
+
+        if (data.success) {
+
+            setSuggestData([])
+
+            let clients = data.data
+
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < data.data.length; i++) {
+                let name = clients[i].name
+                let id = clients[i].ID
+                temp = [...temp, {value: id,label:name},]
+            }
+
+            setSuggestData(temp)
+
+
+        }
+    };
+
+    useEffect(() => {
+        fetchClients();
+    }, []);
+
+    return (
+        <>
+            <Modal
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+                title="Create Transaction"
+            >
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        doSubmit();
+                    }}
+                >
+                    <Select
+                        required
+                        label="Transaction Type"
+                        data={[
+                            {
+                                value: "true",
+                                label: "Import",
+                            },
+                            {
+                                value: "false",
+                                label: "Export",
+                            },
+                        ]}
+                        value={transactionType.toString()}
+                        onChange={(value) => {
+                            setTransactionType(Boolean(value));
+                        }}
+                    />
+                    <Space h="md" />
+                    <Select
+                        label="Client"
+                        required
+                        data={suggestData}
+                        onChange={(value) => {
+                            setClientId(Number(value));
+                        }}
+                    />
+                    <Space h="md" />
+                    <Group position="right">
+                        <Button color="green" type="submit">
+                            Submit
+                        </Button>
+                    </Group>
+                </form>
+            </Modal>
+        </>
+    );
+};
 
 const PermissionsModal = ({ opened }: { opened: boolean }) => {
     const navigate = useNavigate();
@@ -43,188 +207,268 @@ const PermissionsModal = ({ opened }: { opened: boolean }) => {
     );
 };
 
-const ResultsModal = ({
-    selectedResult,
-    setSelectedResult,
-    modalOpened,
-    setModalOpened,
-}: {
-    selectedResult: string;
-    setSelectedResult: Dispatch<SetStateAction<string>>;
-    modalOpened: boolean;
-    setModalOpened: Dispatch<SetStateAction<boolean>>;
+
+
+const LocationItemRow = ({
+                             i,
+                             setStock,
+                             stock,
+                         }: {
+    i: number;
+    setStock: Dispatch<SetStateAction<any[]>>;
+    stock: any[];
 }) => {
-    const [product, setProduct] = useState<Item>({} as Item);
+    const handlers = useRef<NumberInputHandlers>();
+    return (
+        <Group>
 
-    const [changingStock, setChangingStock] = useState<boolean>(false);
+            {/*@ts-ignore*/}
+            <ActionIcon size={42} variant="default" onClick={() => handlers.current.decrement()}>
+                –
+            </ActionIcon>
 
-    const [jump, setJump] = useState<number>(1);
+            <NumberInput
+                hideControls
+                value={stock[i][1]}
+                onChange={(val) => {
+                    let temp: any[]
 
-    const [netJump, setNetJump] = useState<number>(0);
+                    temp = stock
 
-    const submitStock = async () => {
-        setChangingStock(true);
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/items/stock/jump?product_id=${product.id}&diff=${netJump}`,
-            {
-                method: "PATCH",
-                credentials: "include",
+                    if (val == undefined) {
+                        val = 0
+                    }
+
+
+                    temp[i][1] = val
+
+                    setStock(temp)
+                }}
+                handlersRef={handlers}
+
+                min={0}
+                step={1}
+                styles={{ input: { width: 54, textAlign: 'center' } }}
+            />
+
+            {/*@ts-ignore*/}
+            <ActionIcon size={42} variant="default" onClick={() => handlers.current.increment()}>
+                +
+            </ActionIcon>
+        </Group>
+    )
+}
+
+const TransactionItemRow = (
+    ({item, id, doDelete}: {item: any[], id:number, doDelete: (id: number) => void}) => {
+
+        const [itemInfo, setItemInfo] = useState<Item>()
+
+
+        const getItemInfo = async () => {
+            if (itemInfo == undefined) {
+                const response = await fetch(
+                    `${process.env.REACT_APP_API_URL}/items/lookup?id=${item[0]}`,
+                    {
+                        credentials: "include",
+                    }
+                );
+
+                const data: {
+                    success: boolean;
+                    data: Item;
+                } = await response.json();
+
+                if (data.success) {
+                    await setItemInfo(data.data)
+                }
+
             }
-        );
 
-        const data: {
-            success: boolean;
-            message: string;
-            data: number;
-        } = await response.json();
-
-        if (data.success) {
-            setChangingStock(false);
-            showNotification({
-                message: `Stock updated to ${data.data}.`,
-                color: "green",
-                title: "Stock updated",
-            });
-            setNetJump(0);
-            setJump(1);
-
-            await lookupLocation();
-            return;
         }
 
-        showNotification({
-            message: data.message,
-            color: "red",
-            title: "Unable to update stock",
-        });
-    };
+        getItemInfo()
 
-    const lookupLocation = async () => {
-        const splitResult = selectedResult.split("");
+        if (itemInfo == undefined) {return (<></>)}
+        return (
+            <tr key={itemInfo.id}>
+                <td>{itemInfo.name}</td>
+                <td>{itemInfo.sku}</td>
+                <td>{itemInfo.size}</td>
+                <td>{itemInfo.price}</td>
+                <td>{item[1]}</td>
+                <td>
+                    <ActionIcon variant="default" onClick={() => {
+                        doDelete(id)
+                    }}>
+                        <Trash />
+                    </ActionIcon>
+                </td>
+            </tr>
+        )
 
-        const letter = splitResult[splitResult.length - 1];
 
-        // get name which is everything except last character
-        const name = selectedResult.slice(0, -1);
+    }
+)
 
-        const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/location/scan?name=${name}&letter=${letter}`,
-            {
-                credentials: "include",
+
+const LocationItemModal =
+    ({
+         opened,
+         setOpened,
+         setItems,
+         items,
+     }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        setItems: (items: any[]) => void;
+        items: Item[];
+    }) => {
+        const [stock, setStock] = useState<any[]>([]);
+        const handlers = useRef<NumberInputHandlers>();
+        const [testStock, setTestStock] = useState([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        useEffect(() => {
+            init();
+        }, [opened]);
+
+        const init = async () => {
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < items.length; i++) {
+                temp = [...temp, [items[i].id, 0]]
             }
-        );
-
-        const data: {
-            success: boolean;
-            data: Item;
-        } = await response.json();
-
-        setProduct(data.data);
-    };
-
-    useEffect(() => {
-        lookupLocation();
-    }, [selectedResult]);
-
-    const decStock = async () => {
-        setNetJump(netJump - jump);
-    };
-
-    const incStock = async () => {
-        setNetJump(netJump + jump);
-    };
-
-    return (
-        <>
-            <Modal
-                opened={modalOpened}
-                onClose={() => {
-                    setSelectedResult("");
-                    setModalOpened(false);
-                }}
-                title="Location Details"
-            >
-                <p>
-                    <b>Location ID</b>: {selectedResult}
-                </p>
-                <p>
-                    <b>Item Name</b>: {product.name || "Loading..."}
-                </p>
-                <p>
-                    <b>Current Stock</b>: {product.quantity || 0}
-                </p>
-                <b>Stock Control</b>
-                <p>
-                    <b>Net Jump</b>:{" "}
-                    <span
-                        style={{
-                            color: netJump < 0 ? "red" : "green",
-                        }}
-                    >
-                        {netJump}
-                    </span>
-                </p>
-                <Group
-                    grow
-                    sx={{
-                        alignItems: "flex-end",
+            setStock(temp)
+        }
+        return (
+            <>
+                <Modal
+                    opened={opened}
+                    onClose={() => {
+                        setItems(stock);
+                        setOpened(false);
                     }}
+                    title="Transaction Items"
+                    size="50%"
                 >
-                    <InputWrapper label="Jump">
-                        <TextInput
-                            value={jump.toString()}
-                            type="number"
-                            onChange={(e) => setJump(Number(e.target.value))}
-                        />
-                    </InputWrapper>
-                    <Button
-                        color="red"
-                        onClick={decStock}
-                        disabled={changingStock}
-                    >
-                        -{jump}
-                    </Button>
-                    <Button
-                        color="green"
-                        onClick={incStock}
-                        disabled={changingStock}
-                    >
-                        +{jump}
-                    </Button>
-                </Group>
-                <Space h="md" />
-                <Button color="green" onClick={submitStock}>
-                    Submit Stock
-                </Button>
-            </Modal>
-        </>
-    );
-};
+                    <Box sx={containerStyles}>
+                        <Space h="md" />
+                        <Table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Quantity</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {items.map((item, i) => (
+
+                                <tr key={item.id}>
+                                    <td>{item.name}</td>
+                                    <td>{item.sku}</td>
+                                    <td>{item.size}</td>
+                                    <td>{item.price}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>
+                                        <LocationItemRow
+                                            i={i}
+                                            setStock={setStock}
+                                            stock={stock}
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+
+                    </Box>
+                </Modal>
+            </>
+        );
+    };
+
 
 const Scanner = () => {
-    const [newResult, setNewResult] = useState<string>("");
-
     const [results, setResults] = useState<string[]>([]);
 
     const [modalOpened, setModalOpened] = useState<boolean>(false);
-    const [selectedResult, setSelectedResult] = useState<string>("");
+    const [completeTransaction, setCompleteTransaction] = useState<boolean>(false);
 
     const [permissionsAllowed, setPermissionsAllowed] = useState<boolean>(true);
 
-    useEffect(() => {
-        if (!newResult) return;
-        setResults([newResult, ...results]);
-    }, [newResult]);
+    const [transactionItems, setTransactionItems] = useState<any[]>([])
+    const [transactionItemsPost, setTransactionItemsPost] = useState<editingTransactionItem[]>([])
 
-    useEffect(() => {
-        if (!selectedResult) return;
+    const [locationItems, setLocationItems] = useState<Item[]>([])
 
-        setModalOpened(true);
-    }, [selectedResult]);
+    const forceUpdate = useForceUpdate();
 
     useEffect(() => {
         checkPermission();
     }, []);
+
+    useEffect(() => {
+        if (!transactionItems) return;
+
+    }, [transactionItems]);
+
+    const resetItems = async () => {
+        setTransactionItems([])
+        forceUpdate()
+    }
+
+    const removeItem = (id: number) => {
+        let tempTransaction = transactionItems
+        tempTransaction.splice(id, 1)
+        setTransactionItems(tempTransaction)
+        forceUpdate()
+    }
+
+    const setItemHandler = (items: any[]) => {
+        let tempTransaction = transactionItems
+
+        let id: number;
+
+        for (let i = 0; i < items.length; i++) {
+
+            id = -1
+            if (items[i][1] != 0) {
+                for (let k = 0; k < tempTransaction.length; k++) {
+
+                    console.log("_______________________")
+                    console.log(tempTransaction[k][0])
+                    console.log(items[i][0])
+
+
+
+                    if (tempTransaction[k][0] == items[i][0] ) {
+                        id = k
+                        break
+                    }
+
+                }
+                if (id == -1) {
+                    tempTransaction = [...tempTransaction, items[i]]
+                    id = tempTransaction.length - 1
+                }
+                else {
+                    tempTransaction[id][1] += items[id][1]
+                    if (tempTransaction[id][1] == 0) {
+                        tempTransaction.splice(id, 1)
+                    }
+                }
+
+            }
+        }
+        setTransactionItems(tempTransaction)
+
+    }
 
     const checkPermission = async () => {
         // let allowed = false;
@@ -241,6 +485,53 @@ const Scanner = () => {
         setPermissionsAllowed(true);
     };
 
+    const getItems = async (location: string) => {
+        const splitResult = location.split("");
+
+        const letter = splitResult[splitResult.length - 1];
+
+        // get name which is everything except last character
+        const name = location.slice(0, -1);
+
+        const responseLocation = await fetch(
+            `${process.env.REACT_APP_API_URL}/location/list/sku?name=${name}&letter=${letter}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const dataLocation: {
+            success: boolean;
+            sku: string;
+        } = await responseLocation.json();
+
+
+        let sku = dataLocation.sku
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/list?sku=${sku}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data: {
+            success: boolean;
+            data: {
+                data:        Item[],
+                total:       number,
+                currentPage: number,
+                totalPages:  number,
+            };
+        } = await response.json();
+
+        if (data.success) {
+            await setLocationItems(data.data.data);
+            setModalOpened(true)
+        }
+    };
+
+
     return (
         <>
             <Container>
@@ -250,52 +541,84 @@ const Scanner = () => {
                     Simply point your device at a QR code and wait for the
                     results to appear.
                 </h2>
-                {/* {permissionsAllowed && ( */}
                 <QrReader
                     onResult={(result, err) => {
-                        // @ts-ignore
-                        if (!result?.text || results.includes(result?.text))
-                            return;
-                        // @ts-ignore
-                        setNewResult(result?.text);
+                        if (!!result){
+                            // @ts-ignore
+                            if (!result?.text || results.includes(result?.text))
+                                return;
+                            // @ts-ignore
+                            getItems(result?.text);
+                        }
+
                     }}
                     constraints={{ facingMode: "environment" }}
                     scanDelay={500}
                 />
-                {/* )} */}
-                <br />
-                {results.map((result) => (
-                    <Box
+            </Container>
+
+            <Box sx={containerStyles}>
+                <Group position="left">
+                    <h3>Transactions Items</h3>
+                </Group>
+                <Table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>SKU</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Delete</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {transactionItems.map((item, i) => (
+
+                        <TransactionItemRow
+                            item={item}
+                            id={i}
+                            doDelete={removeItem}
+                        />
+
+                    ))}
+                    </tbody>
+                </Table>
+                <Space h="md" />
+                <Group position="right">
+                    <Button
+                        color="green"
                         onClick={() => {
-                            setSelectedResult(result);
-                        }}
-                        sx={{
-                            borderRadius: "5px",
-                            backgroundColor: "#fff",
-                            padding: "1rem",
-                            boxSizing: "border-box",
-                            marginBottom: "1rem",
+                            if (transactionItems.length == 0) {return}
+                            let temp: editingTransactionItem[]
+                            temp = []
+
+                            for (let i = 0; i < transactionItems.length; i++){
+                                temp = [...temp, {
+                                    id: Number(transactionItems[i][0]),
+                                    quantity: transactionItems[i][1],
+                                }]
+                            }
+                            setTransactionItemsPost(temp)
+
+                            setCompleteTransaction(true)
                         }}
                     >
-                        <p style={{ margin: 0 }}>{result}</p>
-                    </Box>
-                ))}
-            </Container>
-            {results.length ? (
-                <Button
-                    color="red"
-                    onClick={() => {
-                        setResults([]);
-                    }}
-                >
-                    Clear Scans
-                </Button>
-            ) : null}
-            <ResultsModal
-                selectedResult={selectedResult}
-                setSelectedResult={setSelectedResult}
-                modalOpened={modalOpened}
-                setModalOpened={setModalOpened}
+                        Complete
+                    </Button>
+                </Group>
+            </Box>
+            <LocationItemModal
+                opened={modalOpened}
+                setOpened={setModalOpened}
+                setItems={setItemHandler}
+                items={locationItems}
+            />
+            <CreateTransactionModal
+                opened={completeTransaction}
+                setOpened={setCompleteTransaction}
+                refresh={resetItems}
+                transactionItems={transactionItemsPost}
             />
             <PermissionsModal opened={!permissionsAllowed} />
         </>

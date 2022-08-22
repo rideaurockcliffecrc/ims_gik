@@ -1,6 +1,6 @@
-/node_modules
+gik-dashboard/node_modules/
 
-/build
+gik-dashboard/build/
 
 .git
 
@@ -11,3 +11,5 @@
 .env
 
 *.log
+
+.idea/

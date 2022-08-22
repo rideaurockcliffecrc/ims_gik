@@ -3,7 +3,7 @@ import {
     Box,
     Button,
     Center,
-    Group,
+    Group, Input,
     InputWrapper,
     Modal,
     Pagination,
@@ -11,19 +11,84 @@ import {
     Space,
     Table,
     TextInput,
+    SegmentedControl,
 } from "@mantine/core";
+import { DateRangePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { CirclePlus, Trash } from "tabler-icons-react";
+import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
+import { CgInternal, CgExternal } from "react-icons/cg"
+import { BsDash } from "react-icons/bs"
+
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import { Transaction, TransactionItem } from "../../types/transaction";
 import TfaSetup from "./TfaSetup";
+import {TagRow} from "./inventory/Items";
+
 
 interface editingTransactionItem {
     id: number;
     quantity: number;
 }
+
+
+const TransactionItemModal =
+    ({
+         opened,
+         setOpened,
+         refresh,
+         items,
+     }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        refresh: (search: string) => Promise<void>;
+        items: TransactionItem[];
+}) => {
+        //const [items, setItems] = useState<TransactionItem[]>([]);
+        return (
+            <>
+                <Modal
+                    opened={opened}
+                    onClose={() => {
+                        refresh("");
+                        setOpened(false);
+                    }}
+                    title="Transaction Items"
+                    size="50%"
+                >
+                    <Box sx={containerStyles}>
+                        <Space h="md" />
+                        <Table>
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {items.map((item) => (
+                                <tr key={item.ID}>
+                                    <td>{item.name}</td>
+                                    <td>{item.sku}</td>
+                                    <td>{item.size}</td>
+                                    <td>{item.price}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>{item.totalValue}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+
+                    </Box>
+                </Modal>
+            </>
+    );
+};
 
 const CreateTransactionModal = ({
     opened,
@@ -99,13 +164,29 @@ const CreateTransactionModal = ({
 
         const data = await response.json();
 
+        //console.log(data);
+
+
+
         if (data.success) {
-            data.data.map((client: Client) => {
-                setSuggestData([
-                    ...suggestData,
-                    { value: client.ID, label: client.name },
-                ]);
-            });
+
+            setSuggestData([])
+
+            let clients = data.data
+
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < data.data.length; i++) {
+                let name = clients[i].name
+                let id = clients[i].ID
+                temp = [...temp, {value: id,label:name},]
+            }
+
+            setSuggestData(temp)
+
+
         }
     };
 
@@ -263,6 +344,14 @@ const CreateTransactionModal = ({
     );
 };
 
+interface invoiceItem {
+    name: string;
+    size: string;
+    sku: string;
+    price: number;
+    quantity: number;
+}
+
 const TransactionComponent = ({
     transaction,
     refresh,
@@ -270,10 +359,44 @@ const TransactionComponent = ({
     transaction: Transaction;
     refresh: () => Promise<void>;
 }) => {
-    const [itemIds, setItemIds] = useState<number[]>([]);
 
     const [preparerUsername, setPreparerUsername] = useState<string>("");
     const [clientName, setClientName] = useState<string>("");
+
+
+    const [showItemModal, setShowItemModal] = useState(false);
+    const [items, setItems] = useState<TransactionItem[]>([]);
+    const [invoiceItems, setInvoiceItems] = useState<invoiceItem[]>([]);
+
+
+    const generateInvoice = async () => {
+
+        await getItems()
+
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/invoice/generate`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                method: "POST",
+                body: JSON.stringify({
+                    name: clientName,
+                    address: "customerAddress",
+                    data: items,
+                }),
+            }
+        );
+
+        const data = await response.arrayBuffer();
+
+        const blob = new Blob([data], { type: "application/pdf" });
+
+        const url = URL.createObjectURL(blob);
+
+        window.open(url);
+    };
 
     const getClientName = async () => {
         const response = await fetch(
@@ -316,12 +439,20 @@ const TransactionComponent = ({
     }, []);
 
     const init = async () => {
-        await getTransactionItems();
+        //await getTransactionItems();
         await getPreparerUsername();
         await getClientName();
+        await getItems()
     };
 
-    const getTransactionItems = async () => {
+    const showTransactionItems = async () => {
+
+        getItems()
+        setShowItemModal(true)
+
+    }
+
+    const getItems = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/transaction/items?id=${transaction.ID}`,
             {
@@ -335,7 +466,7 @@ const TransactionComponent = ({
         } = await response.json();
 
         if (data.success) {
-            setItemIds(data.data.map((item) => item.productId));
+            setItems(data.data);
         }
     };
 
@@ -367,14 +498,33 @@ const TransactionComponent = ({
                 <td>{transaction.type ? "Import" : "Export"}</td>
                 <td>{preparerUsername}</td>
                 <td>{clientName}</td>
-                <td>{itemIds.join(", ")}</td>
                 <td>{transaction.totalQuantity}</td>
                 <td>
-                    <ActionIcon variant="default" onClick={doDelete}>
-                        <Trash />
-                    </ActionIcon>
+                    <Group>
+                        <ActionIcon variant="default" onClick={doDelete}>
+                            <Trash />
+                        </ActionIcon>
+                        <ActionIcon
+                            onClick={showTransactionItems}
+                            variant="default"
+                        >
+                            <ListDetails />
+                        </ActionIcon>
+                        <ActionIcon
+                            onClick={generateInvoice}
+                            variant="default"
+                        >
+                            <FileInvoice />
+                        </ActionIcon>
+                    </Group>
                 </td>
             </tr>
+            <TransactionItemModal
+                opened={showItemModal}
+                setOpened={setShowItemModal}
+                refresh={showTransactionItems}
+                items={items}
+            />
         </>
     );
 };
@@ -383,13 +533,74 @@ export const TransactionManager = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    const [suggestData, setSuggestData] = useState<any[]>([]);
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     const [showCreationModal, setShowCreationModal] = useState(false);
 
+    const [dateFilter, setDateFilter] = useState<
+        [Date | null, Date | null] | undefined
+        >();
+    const [dateFilterEditing, setDateFilterEditing] = useState<
+        [Date | null, Date | null] | undefined
+        >();
+
+    const [userFilter, setUserFilter] = useState<number>(0);
+    const [userFilterEditing, setUserFilterEditing] = useState<number>(0);
+
+    const [typeFilter, setTypeFilter] = useState<string>("");
+    const [typeFilterEditing, setTypeFilterEditing] = useState<string>("");
+
+    useEffect(() => {
+        fetchClients();
+    }, []);
+
     useEffect(() => {
         fetchTransactions();
     }, [currentPage]);
+
+    const doFilter = async () => {
+        setTypeFilter(typeFilterEditing);
+        setDateFilter(dateFilterEditing);
+        setUserFilter(userFilterEditing);
+    };
+
+    const fetchClients = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/client/list`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data = await response.json();
+
+        //console.log(data);
+
+
+
+        if (data.success) {
+
+            setSuggestData([])
+
+            let clients = data.data
+
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < data.data.length; i++) {
+                let name = clients[i].name
+                let id = clients[i].ID
+                temp = [...temp, {value: id,label:name},]
+            }
+
+            setSuggestData(temp)
+
+
+        }
+    };
 
     const fetchTransactions = async () => {
         const response = await fetch(
@@ -432,6 +643,50 @@ export const TransactionManager = () => {
                     </ActionIcon>
                 </Group>
                 <Space h="md" />
+                <Group>
+                    <DateRangePicker
+                        placeholder="Pick Date Range"
+                        required
+                        label="Date Range"
+                        onChange={setDateFilterEditing}
+                    />
+                    <Select
+                        label="Client"
+                        required
+                        data={suggestData}
+                        onChange={(value) => {
+                            setUserFilterEditing(Number(value));
+                        }}
+                    />
+                    <>
+                        <Space h="md" />
+                        <SegmentedControl
+                        value={typeFilter}
+                        //onChange={}
+                        data={[
+                            { label: (
+                                    <Center>
+                                        <CgExternal/>
+                                        <Box>Export</Box>
+                                    </Center>
+                                ), value: "false" },
+                            { label: (
+                                    <Center>
+                                        <BsDash/>
+                                    </Center>
+                                ), value: " " },
+                            { label: (
+                                    <Center>
+                                        <CgInternal/>
+                                        <Box>Import</Box>
+                                    </Center>
+                                ), value: "true" },
+                        ]}
+                    /></>
+                    <Button color="green" onClick={doFilter}>
+                        Filter
+                    </Button>
+                </Group>
                 <Table>
                     <thead>
                         <tr>
@@ -441,7 +696,6 @@ export const TransactionManager = () => {
                             <th>Preparer</th>
                             <th>Customer</th>
                             <th>Item</th>
-                            <th>Amount</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

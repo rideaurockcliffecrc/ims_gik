@@ -15,11 +15,13 @@ import (
 )
 
 type items struct {
-	ItemName    string  `json:"name" binding:"required"`
-	Description string  `json:"description" binding:"required"`
-	SKU         string  `json:"sku" binding:"required"`
-	Price       float32 `json:"price" binding:"required"`
-	Quantity    int     `json:"quantity" binding:"required"`
+	ID         int     `json:"ID"`
+	ItemName   string  `json:"name" binding:"required"`
+	Size       string  `json:"size" binding:"required"`
+	SKU        string  `json:"sku" binding:"required"`
+	Price      float32 `json:"price" binding:"required"`
+	Quantity   int     `json:"quantity" binding:"required"`
+	TotalValue float32 `json:"totalValue"`
 }
 
 type data struct {
@@ -38,6 +40,10 @@ func GetInvoice(c *gin.Context) {
 		})
 		return
 	}
+
+	c.JSON(400, gin.H{
+		"data": json,
+	})
 
 	doc, _ := generator.New(generator.Invoice, &generator.Options{
 		CurrencySymbol:  " ",
@@ -87,7 +93,7 @@ func GetInvoice(c *gin.Context) {
 	for _, i := range json.Data {
 		doc.AppendItem(&generator.Item{
 			Name:        i.ItemName,
-			Description: "   " + i.Description + "\nSKU: " + i.SKU,
+			Description: "   " + i.Size + "\nSKU: " + i.SKU,
 			UnitCost:    fmt.Sprintf("%f", i.Price),
 			Quantity:    strconv.Itoa(i.Quantity),
 		})

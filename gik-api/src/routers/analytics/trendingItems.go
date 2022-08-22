@@ -12,7 +12,7 @@ func GetTrendingItems(c *gin.Context) {
 	// gets the items with the most exports within the last 7 days and sends them back
 	// no need to get times, just send the trending items in a slice
 
-	var trendingItems []types.Item
+	var trendingItems []types.Item0
 	var times []int64
 
 	var samplePoints int = 7
@@ -36,7 +36,7 @@ func GetTrendingItems(c *gin.Context) {
 			quantity += k.TotalQuantity
 		}
 
-		trendingItems = append(trendingItems, types.Item{})
+		trendingItems = append(trendingItems, types.Item0{})
 	}
 
 	c.JSON(200, gin.H{

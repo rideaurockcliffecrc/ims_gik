@@ -2,7 +2,7 @@ package types
 
 import "gorm.io/gorm"
 
-type Item struct {
+type Item0 struct {
 	gorm.Model
 	ID        uint   `gorm:"primaryKey;autoIncrement:false;`
 	ProductID uint   `json:"id" gorm:"primaryKey;column:product_id;type:bigint;autoIncrement:true;not null"`
@@ -27,7 +27,7 @@ type Item struct {
 	Timestamp int64  `json:"timestamp"`
 }
 
-type Item2 struct {
+type Item struct {
 	gorm.Model
 	Name     string  `json:"name"`
 	SKU      string  `json:"name"`
@@ -37,10 +37,6 @@ type Item2 struct {
 	Size     string  `json:"size"`
 }
 
-func (Item) TableName() string {
+func (Item0) TableName() string {
 	return "AP6_wc_product_meta_lookup"
-}
-
-func (Item2) TableName() string {
-	return "Item"
 }

@@ -76,20 +76,6 @@ func AddTransaction(c *gin.Context) {
 
 	totalQuantity := 0
 
-	for _, product := range json.Products {
-		item := types.Item{}
-		database.Database.Where("product_id = ?", product.ID).First(&item)
-
-		if item.ProductID == 0 {
-			c.JSON(400, gin.H{
-				"success": false,
-				"message": fmt.Sprintf("%d is an invalid product ID", product.ID),
-			})
-			return
-		}
-
-	}
-
 	transaction := types.Transaction{
 		Type:      json.Type,
 		ClientID:  uint(json.ClientID),
@@ -102,7 +88,16 @@ func AddTransaction(c *gin.Context) {
 	for _, product := range json.Products {
 		// get items
 		item := types.Item{}
-		database.Database.Where("product_id = ?", product.ID).First(&item)
+		baseQuery := database.Database.Model(&types.Item{}).Where("id = ?", product.ID)
+		baseQuery.First(&item)
+
+		if json.Type {
+			item.Quantity += product.Quantity
+		} else {
+			item.Quantity -= product.Quantity
+		}
+
+		database.Database.Save(item)
 
 		// create transaction item
 		transactionItem := types.TransactionItem{
@@ -172,6 +167,16 @@ func DeleteTransaction(c *gin.Context) {
 	})
 }
 
+type itemsPost struct {
+	ID         int     `json:"ID"`
+	Name       string  `json:"name"`
+	SKU        string  `json:"sku"`
+	Size       string  `json:"size"`
+	Price      float32 `json:"price"`
+	Quantity   int     `json:"quantity"`
+	TotalValue float32 `json:"totalValue"`
+}
+
 func GetTransactionItems(c *gin.Context) {
 	// id
 	id := c.Query("id")
@@ -201,8 +206,39 @@ func GetTransactionItems(c *gin.Context) {
 	transactionItems := []types.TransactionItem{}
 	database.Database.Where("transaction_id = ?", transaction.ID).Find(&transactionItems)
 
+	transactionItemsInfo := []types.Item{}
+	for _, item := range transactionItems {
+		itemInfo := types.Item{}
+		database.Database.Where("id = ?", item.ID).Find(&itemInfo)
+		transactionItemsInfo = append(transactionItemsInfo, itemInfo)
+	}
+
+	itemCount := len(transactionItems)
+
+	transactionItemsPost := []itemsPost{}
+	fmt.Println(len(transactionItemsInfo))
+	fmt.Println(len(transactionItems))
+
+	for i := 0; i < itemCount; i++ {
+		transactionItemsPost = append(transactionItemsPost, itemsPost{
+			transactionItems[i].ProductID,
+			transactionItemsInfo[i].Name,
+			transactionItemsInfo[i].SKU,
+			transactionItemsInfo[i].Size,
+			transactionItemsInfo[i].Price,
+			transactionItems[i].Quantity,
+			transactionItemsInfo[i].Price * float32(transactionItems[i].Quantity),
+		})
+		//transactionItemsPost[i].ID = transactionItems[i].ProductID
+		//transactionItemsPost[i].Name = transactionItemsInfo[i].Name
+		//transactionItemsPost[i].SKU = transactionItemsInfo[i].SKU
+		//transactionItemsPost[i].Price = transactionItemsInfo[i].Price
+		//transactionItemsPost[i].Quantity = transactionItems[i].Quantity
+		//transactionItemsPost[i].TotalValue = float32(transactionItemsPost[i].Quantity) * transactionItemsPost[i].Price
+	}
+
 	c.JSON(200, gin.H{
 		"success": true,
-		"data":    transactionItems,
+		"data":    transactionItemsPost,
 	})
 }

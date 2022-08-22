@@ -7,4 +7,6 @@ export interface Location {
     letter: string;
     itemId: number;
     product: Item;
+    sku: string;
+    productName: string;
 }

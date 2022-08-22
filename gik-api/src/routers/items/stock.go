@@ -25,8 +25,8 @@ func JumpStock(c *gin.Context) {
 	}
 
 	// get item
-	item := types.Item{}
-	err = database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Scan(&item).Error
+	item := types.Item0{}
+	err = database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Scan(&item).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -35,7 +35,7 @@ func JumpStock(c *gin.Context) {
 		return
 	}
 
-	err = database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity+float32(differenceInt)).Error
+	err = database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity+float32(differenceInt)).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -64,8 +64,8 @@ func AddStock(c *gin.Context) {
 		return
 	}
 
-	item := types.Item{}
-	err := database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Scan(&item).Error
+	item := types.Item0{}
+	err := database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Scan(&item).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -74,7 +74,7 @@ func AddStock(c *gin.Context) {
 		return
 	}
 
-	err = database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity+1).Error
+	err = database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity+1).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,
@@ -103,8 +103,8 @@ func RemoveStock(c *gin.Context) {
 		return
 	}
 
-	item := types.Item{}
-	err := database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Scan(&item).Error
+	item := types.Item0{}
+	err := database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Scan(&item).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -114,7 +114,7 @@ func RemoveStock(c *gin.Context) {
 	}
 
 	// update
-	err = database.Database.Model(&types.Item{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity-1).Error
+	err = database.Database.Model(&types.Item0{}).Where("product_id = ?", productId).Update("stock_quantity", item.StockQuantity-1).Error
 	if err != nil {
 		c.JSON(500, gin.H{
 			"success": false,

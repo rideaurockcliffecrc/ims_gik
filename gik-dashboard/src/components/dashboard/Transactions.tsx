@@ -3,7 +3,7 @@ import {
     Box,
     Button,
     Center,
-    Group,
+    Group, Input,
     InputWrapper,
     Modal,
     Pagination,
@@ -11,10 +11,14 @@ import {
     Space,
     Table,
     TextInput,
+    SegmentedControl,
 } from "@mantine/core";
+import { DateRangePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { CirclePlus, Trash, ListDetails, FileInvoice } from "tabler-icons-react";
+import { CgInternal, CgExternal } from "react-icons/cg"
+import { BsDash } from "react-icons/bs"
 
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
@@ -529,13 +533,74 @@ export const TransactionManager = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    const [suggestData, setSuggestData] = useState<any[]>([]);
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     const [showCreationModal, setShowCreationModal] = useState(false);
 
+    const [dateFilter, setDateFilter] = useState<
+        [Date | null, Date | null] | undefined
+        >();
+    const [dateFilterEditing, setDateFilterEditing] = useState<
+        [Date | null, Date | null] | undefined
+        >();
+
+    const [userFilter, setUserFilter] = useState<number>(0);
+    const [userFilterEditing, setUserFilterEditing] = useState<number>(0);
+
+    const [typeFilter, setTypeFilter] = useState<string>("");
+    const [typeFilterEditing, setTypeFilterEditing] = useState<string>("");
+
+    useEffect(() => {
+        fetchClients();
+    }, []);
+
     useEffect(() => {
         fetchTransactions();
     }, [currentPage]);
+
+    const doFilter = async () => {
+        setTypeFilter(typeFilterEditing);
+        setDateFilter(dateFilterEditing);
+        setUserFilter(userFilterEditing);
+    };
+
+    const fetchClients = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/client/list`,
+            {
+                credentials: "include",
+            }
+        );
+
+        const data = await response.json();
+
+        //console.log(data);
+
+
+
+        if (data.success) {
+
+            setSuggestData([])
+
+            let clients = data.data
+
+            let temp: any[]
+
+            temp = []
+
+            for (let i = 0; i < data.data.length; i++) {
+                let name = clients[i].name
+                let id = clients[i].ID
+                temp = [...temp, {value: id,label:name},]
+            }
+
+            setSuggestData(temp)
+
+
+        }
+    };
 
     const fetchTransactions = async () => {
         const response = await fetch(
@@ -578,6 +643,50 @@ export const TransactionManager = () => {
                     </ActionIcon>
                 </Group>
                 <Space h="md" />
+                <Group>
+                    <DateRangePicker
+                        placeholder="Pick Date Range"
+                        required
+                        label="Date Range"
+                        onChange={setDateFilterEditing}
+                    />
+                    <Select
+                        label="Client"
+                        required
+                        data={suggestData}
+                        onChange={(value) => {
+                            setUserFilterEditing(Number(value));
+                        }}
+                    />
+                    <>
+                        <Space h="md" />
+                        <SegmentedControl
+                        value={typeFilter}
+                        //onChange={}
+                        data={[
+                            { label: (
+                                    <Center>
+                                        <CgExternal/>
+                                        <Box>Export</Box>
+                                    </Center>
+                                ), value: "false" },
+                            { label: (
+                                    <Center>
+                                        <BsDash/>
+                                    </Center>
+                                ), value: " " },
+                            { label: (
+                                    <Center>
+                                        <CgInternal/>
+                                        <Box>Import</Box>
+                                    </Center>
+                                ), value: "true" },
+                        ]}
+                    /></>
+                    <Button color="green" onClick={doFilter}>
+                        Filter
+                    </Button>
+                </Group>
                 <Table>
                     <thead>
                         <tr>

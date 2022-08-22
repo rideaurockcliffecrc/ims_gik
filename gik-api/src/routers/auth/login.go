@@ -4,6 +4,7 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/env"
 	"GIK_Web/types"
+	"fmt"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ type loginRequest struct {
 	Password string `json:"password" binding:"required"`
 	//TotpCode        string `json:"totp"`
 	VerificationJWT string `json:"verificationJWT" binding:"required"`
+	RememberMe      bool   `json:"rememberMe" binding:"required"`
 }
 
 func Login(c *gin.Context) {
@@ -110,11 +112,22 @@ func Login(c *gin.Context) {
 		}*/
 
 	// create session
+
+	var days int64
+
+	if json.RememberMe {
+		days = 7
+		fmt.Println("TWO DAYS")
+	} else {
+		days = 1
+		fmt.Println("ONE DAY")
+	}
+
 	session := types.Session{
 		ID:        uuid.New().String(),
 		UserID:    user.ID,
 		CreatedAt: time.Now().Unix(),
-		ExpiresAt: time.Now().Unix() + (60 * 60 * 24),
+		ExpiresAt: time.Now().Unix() + (60 * 60 * 24 * days),
 	}
 
 	if err := database.Database.Create(&session).Error; err != nil {
@@ -125,7 +138,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("session", session.ID, 60*60*24, "/", env.CookieDomain, false, true)
+	c.SetCookie("session", session.ID, 60*60*24*int(days), "/", env.CookieDomain, false, true)
 
 	c.JSON(200, gin.H{
 		"success": true,

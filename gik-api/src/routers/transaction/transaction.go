@@ -87,8 +87,8 @@ func AddTransaction(c *gin.Context) {
 
 	for _, product := range json.Products {
 		// get items
-		item := types.Item2{}
-		baseQuery := database.Database.Model(&types.Item2{}).Where("id = ?", product.ID)
+		item := types.Item{}
+		baseQuery := database.Database.Model(&types.Item{}).Where("id = ?", product.ID)
 		baseQuery.First(&item)
 
 		if json.Type {
@@ -206,9 +206,9 @@ func GetTransactionItems(c *gin.Context) {
 	transactionItems := []types.TransactionItem{}
 	database.Database.Where("transaction_id = ?", transaction.ID).Find(&transactionItems)
 
-	transactionItemsInfo := []types.Item2{}
+	transactionItemsInfo := []types.Item{}
 	for _, item := range transactionItems {
-		itemInfo := types.Item2{}
+		itemInfo := types.Item{}
 		database.Database.Where("id = ?", item.ID).Find(&itemInfo)
 		transactionItemsInfo = append(transactionItemsInfo, itemInfo)
 	}

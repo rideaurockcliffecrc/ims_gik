@@ -2,6 +2,7 @@ package items
 
 import (
 	"GIK_Web/database"
+	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
 	"io/ioutil"
@@ -114,7 +115,7 @@ func GetIdsInBulk(c *gin.Context) {
 
 func LookupItem(c *gin.Context) {
 	// product id
-	productId := c.Query("product_id")
+	productId := c.Query("id")
 
 	if productId == "" {
 		c.JSON(400, gin.H{
@@ -134,8 +135,8 @@ func LookupItem(c *gin.Context) {
 		return
 	}
 
-	var postData post
-	database.Database.Raw("SELECT * FROM `AP6_posts` WHERE `ID` = ?", productIdInt).Scan(&postData)
+	var postData item
+	database.Database.Model(&types.Item{}).Where("id = ?", productIdInt).Scan(&postData)
 
 	c.JSON(200, gin.H{
 		"success": true,

@@ -268,7 +268,7 @@ const TransactionItemRow = (
         const getItemInfo = async () => {
             if (itemInfo == undefined) {
                 const response = await fetch(
-                    `${process.env.REACT_APP_API_URL}/itemstemp/lookup?id=${item[0]}`,
+                    `${process.env.REACT_APP_API_URL}/items/lookup?id=${item[0]}`,
                     {
                         credentials: "include",
                     }
@@ -509,7 +509,7 @@ const Scanner = () => {
         let sku = dataLocation.sku
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/list?sku=${sku}`,
+            `${process.env.REACT_APP_API_URL}/items/list?sku=${sku}`,
             {
                 credentials: "include",
             }

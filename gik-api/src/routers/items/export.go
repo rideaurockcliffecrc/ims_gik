@@ -11,16 +11,13 @@ import (
 
 func ExportItems(c *gin.Context) {
 	type export struct {
-		ID            uint    `gorm:"primaryKey;autoIncrement:false; csv:"-"`
-		ProductID     uint    `json:"id" csv:"id" gorm:"primaryKey;column:product_id;type:bigint;autoIncrement:true;not null"`
-		SKU           string  `json:"sku" csv:"sku" gorm:"type:varchar(100)"`
-		Price         float32 `json:"price" csv:"price"`
-		StockQuantity float32 `json:"stockQuantity" csv:"stockQuantity"`
-		Name          string  `json:"name" csv:"name"`
-		Category      string  `json:"category" csv:"category"`
-		Gender        string  `json:"gender" csv:"gender"`
-		Season        string  `json:"season" csv:"season"`
-		Location      string  `json:"location" csv:"location"`
+		ID       uint    `gorm:"primaryKey;autoIncrement:false" csv:"-"`
+		Name     string  `json:"name"`
+		SKU      string  `json:"name"`
+		Category string  `json:"category"` //Gender and such
+		Price    float32 `json:"price"`
+		Quantity int     `json:"quantity"`
+		Size     string  `json:"size"`
 	}
 	items := []export{}
 	database.Database.Model(&types.Item{}).Find(&items)

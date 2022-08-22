@@ -48,7 +48,7 @@ export const CreateLocationModal = ({
 
     const fetchSuggestions = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/suggest?query=${itemName}`,
+            `${process.env.REACT_APP_API_URL}/items/suggest?query=${itemName}`,
             {
                 credentials: "include",
             }

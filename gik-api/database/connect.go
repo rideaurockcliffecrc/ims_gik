@@ -31,8 +31,8 @@ func migrations() {
 		return
 	}
 
+	Database.AutoMigrate(&types.Item0{})
 	Database.AutoMigrate(&types.Item{})
-	Database.AutoMigrate(&types.Item2{})
 	Database.AutoMigrate(&types.Tag{})
 	Database.AutoMigrate(&types.User{})
 	Database.AutoMigrate(&types.Client{})

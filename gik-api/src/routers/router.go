@@ -11,7 +11,6 @@ import (
 	"GIK_Web/src/routers/info"
 	"GIK_Web/src/routers/invoice"
 	"GIK_Web/src/routers/items"
-	"GIK_Web/src/routers/items_temp"
 	"GIK_Web/src/routers/location"
 	"GIK_Web/src/routers/logs"
 	"GIK_Web/src/routers/qr"
@@ -19,8 +18,6 @@ import (
 	"GIK_Web/src/routers/status"
 	"GIK_Web/src/routers/tags"
 	"GIK_Web/src/routers/transaction"
-	"GIK_Web/utils"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,40 +61,12 @@ func InitRouter() *gin.Engine {
 		itemsApi.Use(middleware.AuthMiddleware())
 		itemsApi.Use(middleware.AdvancedLoggingMiddleware())
 		itemsApi.GET("/list", items.ListItem)
-		itemsApi.GET("/export", items.ExportItems)
 		itemsApi.GET("/lookup", items.LookupItem)
-		itemsApi.POST("/bulklookup", items.GetIdsInBulk)
-		itemsApi.PUT("/add", items.AddItem)
-		itemsApi.DELETE("/delete", items.DeleteLocation)
-		itemsApi.PATCH("/update", items.UpdateItem)
+		itemsApi.GET("/export", items.ExportItems)
 		itemsApi.GET("/suggest", items.GetAutoSuggest)
-		stockApi := itemsApi.Group("/stock")
-		{
-			stockApi.PUT("/add", items.AddStock)
-			stockApi.PUT("/remove", items.RemoveStock)
-			stockApi.PATCH("/jump", items.JumpStock)
-		}
-
-		itemsApi.GET("/product_id", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"success": true,
-				"message": "random product id generated",
-				"data":    utils.GenerateProductId(),
-			})
-		})
-	}
-
-	items2Api := r.Group("/itemstemp")
-	{
-		items2Api.Use(middleware.AuthMiddleware())
-		items2Api.Use(middleware.AdvancedLoggingMiddleware())
-		items2Api.GET("/list", items_temp.ListItem)
-		items2Api.GET("/lookup", items_temp.LookupItem)
-		items2Api.GET("/export", items_temp.ExportItems)
-		items2Api.GET("/suggest", items_temp.GetAutoSuggest)
-		items2Api.PUT("/add", items_temp.AddItem)
-		items2Api.PATCH("/update", items_temp.UpdateItem)
-		items2Api.DELETE("/delete", items_temp.DeleteLocation)
+		itemsApi.PUT("/add", items.AddItem)
+		itemsApi.PATCH("/update", items.UpdateItem)
+		itemsApi.DELETE("/delete", items.DeleteLocation)
 	}
 
 	tagsApi := r.Group("/tags")

@@ -60,7 +60,7 @@ func AttentionRequired(c *gin.Context) {
 
 	offset = (pageInt - 1) * limit
 
-	baseQuery := database.Database.Model(&types.Item2{}).Where("quantity < ?", max).Where("name is not null").Order("quantity desc").Order("sku desc").Order("size desc")
+	baseQuery := database.Database.Model(&types.Item{}).Where("quantity < ?", max).Where("name is not null").Order("quantity desc").Order("sku desc").Order("size desc")
 
 	itemCount := int64(0)
 	baseQuery.Count(&itemCount)

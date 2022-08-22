@@ -5,35 +5,29 @@ import (
 	"GIK_Web/types"
 	"GIK_Web/utils"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"math"
 	"strconv"
-	"time"
-
-	"github.com/gin-gonic/gin"
+	"strings"
 )
 
 type item struct {
-	ID            string
-	SKU           string  `json:"sku"`
-	ProductID     uint    `json:"id"`
-	Price         float32 `json:"price"`
-	StockQuantity float32 `json:"stockQuantity"`
-	Name          string  `json:"name"`
-	Category      string  `json:"category"`
-	Gender        string  `json:"gender"`
-	Season        string  `json:"season"`
-	Location      string  `json:"location"`
-	Image         []byte  `json:"image"`
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	SKU      string  `json:"sku"`
+	Category string  `json:"category"` //Gender and such
+	Size     string  `json:"size"`
+	Price    float32 `json:"price"`
+	Quantity int     `json:"quantity"`
 }
 
 type returnedItem struct {
-	ProductID     uint    `json:"id"`
-	StockQuantity float32 `json:"stockQuantity"`
-	Name          string  `json:"name"`
-	SKU           string  `json:"sku"`
-	Gender        string  `json:"gender"`
-	Season        string  `json:"season"`
-	Price         float32 `json:"price"`
+	Name     string  `json:"name"`
+	SKU      string  `json:"sku"`
+	Category string  `json:"category"` //Gender and such
+	Size     string  `json:"size"`
+	Price    float32 `json:"price"`
+	Quantity int     `json:"quantity"`
 }
 
 func ListItem(c *gin.Context) {
@@ -43,7 +37,10 @@ func ListItem(c *gin.Context) {
 		page = "1"
 	}
 
-	search := c.Query("search")
+	name := c.Query("name")
+	sku := c.Query("sku")
+	tags := strings.Split(c.Query("tags"), ",")
+	fmt.Println(tags)
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -59,10 +56,16 @@ func ListItem(c *gin.Context) {
 
 	baseQuery := database.Database.Model(&types.Item{})
 
-	baseQuery = baseQuery.Order("timestamp desc")
+	baseQuery = baseQuery.Order("sku, FIELD(size, 'XXL',  'XL', 'L', 'M', 'S', 'XS', 'XXS'), size")
 
-	if search != "" {
-		baseQuery = baseQuery.Where("name LIKE ?", "%"+search+"%")
+	for _, tag := range tags {
+		baseQuery = baseQuery.Where("category LIKE ?", "%"+tag+"%")
+	}
+	if name != "" {
+		baseQuery = baseQuery.Where("name LIKE ?", "%"+name+"%")
+	}
+	if sku != "" {
+		baseQuery = baseQuery.Where("sku LIKE ?", "%"+sku+"%")
 	}
 
 	var totalCount int64
@@ -74,35 +77,33 @@ func ListItem(c *gin.Context) {
 
 	baseQuery.Find(&items)
 
-	returnedItems := []returnedItem{}
+	//returnedItems := []returnedItem{}
+	/*
+		for _, item := range items {
+			itemName := item.Name
 
-	for _, item := range items {
-		itemName := item.Name
+				if item.Name == "" {
+					tempItemName, err := utils.GetItemNameByID(item.ID)
+					if tempItemName == "" || err != nil {
+						fmt.Println("unable to find name for", item.SKU)
+						tempItemName = "Unknown name"
+					}
 
-		if item.Name == "" {
-			tempItemName, err := utils.GetItemNameByID(item.ProductID)
-			if tempItemName == "" || err != nil {
-				fmt.Println("unable to find name for", item.ProductID)
-				tempItemName = "Unknown name"
-			}
+					itemName = tempItemName
 
-			itemName = tempItemName
+					go database.Database.Model(&types.Item0{}).Where("product_id = ?", item.ProductID).Update("name", itemName)
+				}
 
-			go database.Database.Model(&types.Item{}).Where("product_id = ?", item.ProductID).Update("name", itemName)
-		}
-
-		returnedItems = append(returnedItems, returnedItem{
-			ProductID:     item.ProductID,
-			StockQuantity: item.StockQuantity,
-			Name:          itemName,
-			SKU:           item.SKU,
-		})
-	}
+			returnedItems = append(returnedItems, returnedItem{
+				Name:          itemName,
+				SKU:           item.SKU,
+			})
+		}*/
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
 	c.JSON(200, gin.H{"success": true, "data": gin.H{
-		"data":        returnedItems,
+		"data":        items,
 		"total":       totalCount,
 		"currentPage": pageInt,
 		"totalPages":  totalPages,
@@ -130,7 +131,7 @@ func UpdateItem(c *gin.Context) {
 	}
 
 	item := types.Item{}
-	if err := database.Database.Where(types.Item{
+	if err := database.Database.Where(types.Item0{
 		ProductID: uint(jsonIdInt),
 	}).First(&item).Error; err != nil {
 		c.JSON(400, gin.H{
@@ -140,25 +141,23 @@ func UpdateItem(c *gin.Context) {
 		return
 	}
 
-	item.Price = json.Price
-	item.StockQuantity = json.StockQuantity
 	item.Name = json.Name
+	item.SKU = json.SKU
 	item.Category = json.Category
-	item.Gender = json.Gender
-	item.Season = json.Season
-	item.Location = json.Location
-	item.Image = json.Image
+	item.Size = json.Size
+	item.Price = json.Price
+	item.Quantity = json.Quantity
 
 	database.Database.Save(item)
 }
 
 type newItemRequest struct {
-	Name          string  `json:"name" binding:"required"`
-	SKU           string  `json:"sku" binding:"required"`
-	StockQuantity int     `json:"stockQuantity" binding:"required"`
-	Gender        string  `json:"gender" binding:"required"`
-	Season        string  `json:"season" binding:"required"`
-	Price         float32 `json:"price" binding:"required"`
+	Name     string  `json:"name" binding:"required"`
+	SKU      string  `json:"sku" binding:"required"`
+	Category string  `json:"category" binding:"required"`
+	Size     string  `json:"size" binding:"required"`
+	Price    float32 `json:"price" binding:"required"`
+	Quantity int     `json:"quantity" binding:"required"`
 }
 
 func AddItem(c *gin.Context) {
@@ -176,12 +175,10 @@ func AddItem(c *gin.Context) {
 
 	item.Name = json.Name
 	item.SKU = json.SKU
-	item.StockQuantity = float32(json.StockQuantity)
-	item.ProductID = uint(utils.GenerateProductId())
-	item.Timestamp = time.Now().Unix()
-	item.Gender = json.Gender
-	item.Season = json.Season
+	item.Category = json.Category
+	item.Size = json.Size
 	item.Price = json.Price
+	item.Quantity = int(json.Quantity)
 
 	err := database.Database.Create(&item).Error
 	if err != nil {
@@ -192,10 +189,6 @@ func AddItem(c *gin.Context) {
 		})
 		return
 	}
-
-	c.JSON(200, gin.H{"success": true, "data": gin.H{
-		"id": item.ProductID,
-	}})
 
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
 }

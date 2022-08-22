@@ -66,7 +66,7 @@ const CreateItemModal = ({
 
     const doCreate = async () => {
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/add`,
+            `${process.env.REACT_APP_API_URL}/items/add`,
             {
                 credentials: "include",
                 method: "PUT",
@@ -304,7 +304,7 @@ export const ItemsManager = () => {
         const response = await fetch(
             `${
                 process.env.REACT_APP_API_URL
-            }/itemstemp/export`,
+            }/items/export`,
             {
                 credentials: "include",
             }
@@ -347,7 +347,7 @@ export const ItemsManager = () => {
         setLoading(true);
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/itemstemp/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
+            `${process.env.REACT_APP_API_URL}/items/list?page=${currentPage}&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
             {
                 credentials: "include",
             }

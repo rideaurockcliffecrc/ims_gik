@@ -302,9 +302,7 @@ export const ItemsManager = () => {
 
     const exportCSV = async () => {
         const response = await fetch(
-            `${
-                process.env.REACT_APP_API_URL
-            }/items/export`,
+            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
             {
                 credentials: "include",
             }

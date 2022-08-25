@@ -85,6 +85,7 @@ func InitRouter() *gin.Engine {
 		clientsApi.Use(middleware.AuthMiddleware())
 		clientsApi.Use(middleware.AdvancedLoggingMiddleware())
 		clientsApi.GET("/list", client.ListClient)
+		clientsApi.GET("/export", client.ExportClients)
 		// clientsApi.GET("/lookup", client.LookupLocation)
 		clientsApi.PUT("/add", client.AddClient)
 		clientsApi.DELETE("/delete", client.DeleteClient)

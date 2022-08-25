@@ -646,13 +646,12 @@ export const TransactionManager = () => {
                 <Group>
                     <DateRangePicker
                         placeholder="Pick Date Range"
-                        required
-                        label="Date Range"
+                        //label="Date Range"
                         onChange={setDateFilterEditing}
                     />
                     <Select
-                        label="Client"
-                        required
+                        //label="Client"
+                        placeholder="Client"
                         data={suggestData}
                         onChange={(value) => {
                             setUserFilterEditing(Number(value));

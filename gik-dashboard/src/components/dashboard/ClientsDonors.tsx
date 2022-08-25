@@ -12,7 +12,7 @@ import {
 import { useForm } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { CirclePlus, Trash } from "tabler-icons-react";
+import {CirclePlus, TableExport, Trash} from "tabler-icons-react";
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 
@@ -48,6 +48,8 @@ const ClientComponent = ({
             title: "Error",
         });
     };
+
+
 
     return (
         <>
@@ -226,6 +228,27 @@ const Clients = () => {
     const [showClientCreationModal, setShowClientCreationModal] =
         useState<boolean>(false);
 
+    const exportCSV = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/client/export?name=${nameQuery}&contact=${contactQuery}&phone=${phoneQuery}&email=${emailQuery}&address=${addressQuery}`,
+            {
+                credentials: "include",
+            }
+        );
+
+        // data is arraybuffer
+        const data = await response.arrayBuffer();
+
+        // convert to blob
+        const blob = new Blob([data], { type: "text/csv" });
+
+        // create a url from the blob
+        const url = URL.createObjectURL(blob);
+
+        // open the url with the pdf viewer
+        window.open(url, "_blank");
+    };
+
     const fetchClients = async () => {
         setLoading(true);
 
@@ -322,11 +345,20 @@ const Clients = () => {
                     </tbody>
                 </Table>
                 <Space h="md" />
-                <Group position="right">
+                <Group position="apart">
+                    <ActionIcon
+                        sx={{
+                            height: "4rem",
+                            width: "4rem",
+                        }}
+                        onClick={exportCSV}
+                    >
+                        <TableExport />
+                    </ActionIcon>
                     <Button
+                        onClick={fetchClients}
                         color="green"
                         disabled={loading}
-                        onClick={fetchClients}
                     >
                         Refresh
                     </Button>

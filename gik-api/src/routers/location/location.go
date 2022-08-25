@@ -4,7 +4,6 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/types"
 	"GIK_Web/utils"
-	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -115,8 +114,8 @@ func UpdateLocation(c *gin.Context) {
 }
 
 type addRequest struct {
-	Name   string `json:"name" binding:"required"`
-	Letter string `json:"letter" binding:"required"`
+	Name string `json:"name" binding:"required"`
+	//Letter string `json:"letter" binding:"required"`
 	//SKU         string `json:"sku" binding:"required"`
 	ProductName string `json:"productName" binding:"required"`
 }
@@ -128,17 +127,30 @@ func AddLocation(c *gin.Context) {
 			"success": false,
 			"message": "Invalid fields",
 		})
-		fmt.Println(json)
 		return
 	}
-
-	//TODO add check to see if exists
 
 	sku := ""
 
 	database.Database.Model(&types.Item{}).Where("name = ?", json.ProductName).Distinct().Pluck("sku", &sku)
 
-	err := database.Database.Create(&types.Location{Name: json.Name, Letter: json.Letter, SKU: sku}).Error
+	var countSKU int64
+
+	database.Database.Model(&types.Location{}).Where(types.Location{SKU: sku}).Count(&countSKU)
+
+	var countName int64
+
+	database.Database.Model(&types.Location{}).Where(types.Location{Name: json.Name}).Count(&countName)
+
+	if countName != 0 || countSKU != 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Already Exists",
+		})
+		return
+	}
+
+	err := database.Database.Create(&types.Location{Name: json.Name, Letter: "", SKU: sku}).Error
 	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
@@ -154,6 +166,50 @@ func AddLocation(c *gin.Context) {
 
 	utils.CreateSimpleLog(c, "Added location "+json.Name)
 
+}
+
+func AddSubLocation(c *gin.Context) {
+
+	name := c.Query("name")
+
+	data := types.Location{}
+
+	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).First(&data)
+
+	var count int64
+
+	database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Count(&count)
+
+	var letter string
+
+	LETTERS := [...]string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+
+	if count == 0 {
+		letter = ""
+	} else if count == 1 {
+		database.Database.Model(&types.Location{}).Where(types.Location{Name: name}).Update("letter", "A")
+		letter = "B"
+	} else {
+		letter = LETTERS[count+1]
+	}
+
+	data.Letter = letter
+
+	err := database.Database.Create(&data).Error
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Unable to create location",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Location created",
+	})
+
+	utils.CreateSimpleLog(c, "Added location "+name)
 }
 
 func DeleteLocation(c *gin.Context) {

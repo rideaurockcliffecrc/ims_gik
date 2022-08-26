@@ -63,6 +63,7 @@ func InitRouter() *gin.Engine {
 		itemsApi.GET("/list", items.ListItem)
 		itemsApi.GET("/lookup", items.LookupItem)
 		itemsApi.GET("/export", items.ExportItems)
+		itemsApi.POST("/import", items.ImportItems)
 		itemsApi.GET("/suggest", items.GetAutoSuggest)
 		itemsApi.PUT("/add", items.AddItem)
 		itemsApi.PATCH("/update", items.UpdateItem)

@@ -7,14 +7,84 @@ import {
     TextInput,
     Modal,
     InputWrapper,
-    ActionIcon,
+    ActionIcon, Text,
+
 } from "@mantine/core";
+import { openConfirmModal } from '@mantine/modals';
 import { useForm } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import {CirclePlus, TableExport, Trash} from "tabler-icons-react";
+import {CirclePlus, TableExport, TableImport, Trash} from "tabler-icons-react";
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
+import {Dropzone, MIME_TYPES} from "@mantine/dropzone";
+import { ConfirmationModal } from "../confirmation"
+
+
+const  UploadCSVModal = (
+    {
+        opened,
+        setOpened,
+        refresh,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        refresh: () => Promise<void>;
+    }) => {
+    const importCSV = async (file: File) => {
+        let data = new FormData()
+        await data.append("file", file)
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/client/import`,
+            {
+                credentials: "include",
+                method: "POST",
+                body: data
+            }
+
+        );
+        await refresh();
+        setOpened(false)
+    };
+
+    return (
+        <>
+            <Modal
+                opened={opened}
+                onClose={() => {
+                    refresh();
+                    setOpened(false);
+                }}
+            >
+                <Dropzone
+                    multiple={false}
+                    onDrop={(file) => {importCSV(file[0])}}
+                    maxSize={3 * 1024 ** 2}
+                    accept={[MIME_TYPES.csv]}
+                    children={() => {
+
+                        return (
+                            <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
+
+                                <div>
+                                    <Text size="xl" inline>
+                                        Drag CSV here or click to select files
+                                    </Text>
+                                    <Text size="sm" color="dimmed" inline mt={7}>
+                                        Select CSV file containing you upload data
+                                    </Text>
+                                </div>
+                            </Group>
+                        )
+                    }}
+                />
+            </Modal>
+        </>
+    );
+}
+
+
 
 const ClientComponent = ({
     client,
@@ -62,8 +132,7 @@ const ClientComponent = ({
                 <td>{client.address}</td>
                 <td>{client.balance}</td>
                 <td>
-                    {" "}
-                    <ActionIcon variant="default" onClick={doDelete}>
+                    <ActionIcon variant="default" onClick={() => ConfirmationModal(doDelete, "This Action Is Permanent. Are You Sure You Want To Delete")}>
                         <Trash />
                     </ActionIcon>
                 </td>
@@ -228,6 +297,9 @@ const Clients = () => {
     const [showClientCreationModal, setShowClientCreationModal] =
         useState<boolean>(false);
 
+    const [showImportModal, setShowImportModal] =
+        useState<boolean>(false);
+
     const exportCSV = async () => {
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/client/export?name=${nameQuery}&contact=${contactQuery}&phone=${phoneQuery}&email=${emailQuery}&address=${addressQuery}`,
@@ -346,15 +418,26 @@ const Clients = () => {
                 </Table>
                 <Space h="md" />
                 <Group position="apart">
-                    <ActionIcon
-                        sx={{
-                            height: "4rem",
-                            width: "4rem",
-                        }}
-                        onClick={exportCSV}
-                    >
-                        <TableExport />
-                    </ActionIcon>
+                    <Group spacing={0}>
+                        <ActionIcon
+                            sx={{
+                                height: "2.5rem",
+                                width: "2.5rem",
+                            }}
+                            onClick={exportCSV}
+                        >
+                            <TableExport size={"1.5rem"}/>
+                        </ActionIcon>
+                        <ActionIcon
+                            sx={{
+                                height: "2.5rem",
+                                width: "2.5rem",
+                            }}
+                            onClick={() => {setShowImportModal(true)}}
+                        >
+                            <TableImport size={"1.5rem"}/>
+                        </ActionIcon>
+                    </Group>
                     <Button
                         onClick={fetchClients}
                         color="green"
@@ -369,9 +452,16 @@ const Clients = () => {
                 setOpened={setShowClientCreationModal}
                 refresh={fetchClients}
             />
+            <UploadCSVModal
+                opened={showImportModal}
+                setOpened={setShowImportModal}
+                refresh={fetchClients}
+            />
         </>
     );
 };
+
+
 
 const ClientsDonors = () => {
     return (

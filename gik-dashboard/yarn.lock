@@ -1602,10 +1602,12 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-4.2.12.tgz#8dfbd23763959b721f5c5c784b3c412bb7c9823a"
   integrity sha512-/2GOsgv1tAUFBXOUV0YBZdDZHj3pHN82Sv1oI/hJMjfIT3ZkGeeiJO8Cw9cBcn76t6caP6Czi3hcuKhjz71O+A==
 
-"@mantine/modals@^4.2.12":
-  version "4.2.12"
-  resolved "https://registry.yarnpkg.com/@mantine/modals/-/modals-4.2.12.tgz#591ec0c3034ec0c3de312bec256797b574e1b9e0"
-  integrity sha512-UEcz2kZIt5fQELTuV0YKtqNzNVs+lyP8aqoNJAUgl3u4EKg4YS0WTTqCOJ6ACtAdmCc10lemgQ3zV/HnNh15Ng==
+"@mantine/modals@^5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@mantine/modals/-/modals-5.2.3.tgz#411be0ee0ad7ade929e7f316dd7c83d4c0e2df60"
+  integrity sha512-fk2RMwH8DjYUBo1UhWa751/uTMkRRk9xvL3DMoICD5Ln5D7U32+XZr4211Y0KY8zO57/NgXCbF3f0U7MOUwUcQ==
+  dependencies:
+    "@mantine/utils" "5.2.3"
 
 "@mantine/notifications@^4.2.12":
   version "4.2.12"
@@ -1646,6 +1648,11 @@
     "@emotion/utils" "1.0.0"
     clsx "^1.1.1"
     csstype "3.0.9"
+
+"@mantine/utils@5.2.3":
+  version "5.2.3"
+  resolved "https://registry.yarnpkg.com/@mantine/utils/-/utils-5.2.3.tgz#8be784d66c3e0cd9f72b6b9deed22a67fbeda35f"
+  integrity sha512-5JOKj8UHaqZmJeciDWQXlbJCNYGKzUrKONMT1kmttbxB6PmGFN8Vy/kTQoSEe09g05S8E79/xLCYGGL8s1N5Yg==
 
 "@modulz/radix-icons@^4.0.0":
   version "4.0.0"

@@ -49,7 +49,7 @@ const Register = () => {
             showNotification({
                 color: "red",
                 title: "Password Mismatch",
-                message: "Password and password confirmation do not match.",
+                message: "Password and password confirmation.tsx do not match.",
             });
             return;
         }

@@ -5,6 +5,8 @@ import {
     Modal,
     PasswordInput,
     Space,
+    Checkbox,
+    Text,
 } from "@mantine/core";
 
 import styles from "../styles/Auth.module.scss";
@@ -14,7 +16,7 @@ import { useForm } from "@mantine/form";
 
 import { showNotification, hideNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -29,7 +31,7 @@ const Login = () => {
         initialValues: {
             username: "",
             password: "",
-            totp: "",
+            rememberMe: "",
         },
     });
 
@@ -127,6 +129,7 @@ const Login = () => {
                     password: form.values.password,
                     //totp: form.values.totp || "",
                     verificationJWT: verification,
+                    rememberMe: form.values.rememberMe,
                 }),
                 credentials: "include",
             }
@@ -197,56 +200,40 @@ const Login = () => {
                             label="Password"
                             {...form.getInputProps("password")}
                         />
-                        <Group position="right" mt="md">
-                            {window.location.protocol === "https:" ? (
-                                <p style={{ color: "green" }}>
-                                    Your connection is secure.
-                                </p>
-                            ) : (
-                                <p style={{ color: "red" }}>
-                                    Your connection is insecure. Don't login
-                                    unless you know what you're doing.
-                                </p>
-                            )}
-                            <Button
-                                type="submit"
+                        <Group position="apart">
+                            <Checkbox
+                                label="Remember me"
                                 color="green"
-                                disabled={!loginEnabled}
-                            >
-                                Login
-                            </Button>
+                                {...form.getInputProps("rememberMe")}
+                            />
+
+                            <Group position="right" mt="md">
+                                {window.location.protocol === "https:" ? (
+                                    <p style={{ color: "green" }}>
+                                        Your connection is secure.
+                                    </p>
+                                ) : (
+                                    <p style={{ color: "red" }}>
+                                        Your connection is insecure. Don't login
+                                        unless you know what you're doing.
+                                    </p>
+                                )}
+                                <Button
+                                    type="submit"
+                                    color="green"
+                                    disabled={!loginEnabled}
+                                >
+                                    Login
+                                </Button>
+                            </Group>
                         </Group>
                     </form>
-                </Container>
-            </div>
-            <Modal
-                title="Two Factor Authentication"
-                opened={askTfa}
-                onClose={() => setAskTfa(false)}
-            >
-                <h1>Two Factor Authentication</h1>
-                <h2>This account is secured with two-factor authentication.</h2>
-                <Space h="xl" />
-                <InputWrapper label="6 Digit Code">
-                    <Input
-                        type="text"
-                        placeholder="123456"
-                        maxLength={6}
-                        {...form.getInputProps("totp")}
-                    />
-                </InputWrapper>
-                <Space h="xl" />
-                <Group position="right">
-                    <Button
-                        color="green"
-                        onClick={() => {
-                            doLogin(topVerification);
-                        }}
-                    >
-                        Verify
+                    <Button component={Link} to="/register" compact variant="white">
+                        <Text color="blue" size={"xs"}>Not Registered?</Text>
                     </Button>
-                </Group>
-            </Modal>
+                </Container>
+
+            </div>
         </>
     );
 };

@@ -40,7 +40,6 @@ func ListItem(c *gin.Context) {
 	name := c.Query("name")
 	sku := c.Query("sku")
 	tags := strings.Split(c.Query("tags"), ",")
-	fmt.Println(tags)
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
@@ -76,29 +75,6 @@ func ListItem(c *gin.Context) {
 	items := []item{}
 
 	baseQuery.Find(&items)
-
-	//returnedItems := []returnedItem{}
-	/*
-		for _, item := range items {
-			itemName := item.Name
-
-				if item.Name == "" {
-					tempItemName, err := utils.GetItemNameByID(item.ID)
-					if tempItemName == "" || err != nil {
-						fmt.Println("unable to find name for", item.SKU)
-						tempItemName = "Unknown name"
-					}
-
-					itemName = tempItemName
-
-					go database.Database.Model(&types.Item0{}).Where("product_id = ?", item.ProductID).Update("name", itemName)
-				}
-
-			returnedItems = append(returnedItems, returnedItem{
-				Name:          itemName,
-				SKU:           item.SKU,
-			})
-		}*/
 
 	totalPages := math.Ceil(float64(totalCount) / float64(limit))
 
@@ -193,9 +169,10 @@ func AddItem(c *gin.Context) {
 	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
 }
 
-func DeleteLocation(c *gin.Context) {
-	json := item{}
-	if err := c.ShouldBindJSON(&json); err != nil {
+func DeleteItem(c *gin.Context) {
+	id := c.Query("id")
+	ID, err := strconv.Atoi(id)
+	if err != nil {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid fields",
@@ -203,5 +180,95 @@ func DeleteLocation(c *gin.Context) {
 		return
 	}
 
-	database.Database.Where("ID = ?", json.ID).Where("name = ?", json.Name).Delete(&item{})
+	item := types.Item{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&item).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Item",
+		})
+		return
+	}
+
+	if err := database.Database.Model(&types.Item{}).Delete(&item).Error; err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to delete Item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	utils.CreateSimpleLog(c, "Deleted Item")
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "Item successfully deleted.",
+	})
+}
+
+func AddSize(c *gin.Context) {
+	id := c.Query("id")
+	size := c.Query("size")
+	quantity := c.Query("quantity")
+	ID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	data := newItemRequest{}
+	if err := database.Database.Model(&types.Item{}).Where("id = ?", ID).First(&data).Error; err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid Item",
+		})
+		return
+	}
+
+	var count int64
+
+	database.Database.Model(&types.Item{}).Where("id = ?", ID).Where("size = ?", size).Count(&count)
+
+	if count != 0 {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Size already exists",
+		})
+		return
+	}
+
+	data.Size = size
+	data.Quantity, err = strconv.Atoi(quantity)
+
+	item := types.Item{}
+
+	item.Name = data.Name
+	item.SKU = data.SKU
+	item.Category = data.Category
+	item.Size = data.Size
+	item.Price = data.Price
+	item.Quantity = int(data.Quantity)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	err = database.Database.Model(&types.Item{}).Create(&item).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"success": false,
+			"message": "Unable to create item",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	utils.CreateSimpleLog(c, fmt.Sprintf("Added item %s", item.Name))
 }

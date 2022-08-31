@@ -215,23 +215,3 @@ func DeleteClient(c *gin.Context) {
 		"message": "Client successfully deleted.",
 	})
 }
-
-// func LookupLocation(c *gin.Context) {
-
-// 	id := c.Query("id")
-// 	name := c.Query("name")
-// 	contact := c.Query("contact")
-// 	phone := c.Query("phone")
-// 	email := c.Query("email")
-// 	address := c.Query("address")
-// 	balance, _ := strconv.ParseFloat(c.Query("balance"), 32)
-
-// 	var postData []company
-// 	database.Database.Model(&company{}).Where(&company{Name: name, Contact: contact, Phone: phone, Email: email, Address: address, Balance: float32(balance)}).Scan(&postData)
-
-// 	c.JSON(200, gin.H{
-// 		"success": true,
-// 		"data":    postData,
-// 	})
-
-// }

@@ -93,7 +93,7 @@ export const CreateLocationModal = ({
                 },
                 body: JSON.stringify({
                     name: locationName,
-                    letter: locationLetter,
+                    //letter: locationLetter,
                     productName: itemName,
                 }),
             }
@@ -141,12 +141,7 @@ export const CreateLocationModal = ({
                             onChange={(e) => setLocationName(e.target.value)}
                         />
                     </InputWrapper>
-                    <InputWrapper label="Letter">
-                        <TextInput
-                            placeholder="A"
-                            onChange={(e) => setLocationLetter(e.target.value)}
-                        />
-                    </InputWrapper>
+
                 </Group>
                 <Space h="md" />
                 <Group position="right">
@@ -234,6 +229,18 @@ export const LocationComponent = ({
         await refresh();
     };
 
+    const addSub = async () => {
+        await fetch(
+            `${process.env.REACT_APP_API_URL}/location/add/sub?name=${location.name}`,
+            {
+                method: "PUT",
+                credentials: "include",
+            }
+        );
+
+        refresh();
+    };
+
     return (
         <>
             <tr className={styles.locationComponent}>
@@ -260,8 +267,7 @@ export const LocationComponent = ({
                         }}
                     />
                 </td>
-                <td>{location.name}</td>
-                <td>{location.letter}</td>
+                <td>{location.name+location.letter}</td>
                 <td>{location.productName}</td>
                 <td>
                     <Group>
@@ -273,6 +279,12 @@ export const LocationComponent = ({
                             onClick={() => setShowQr(true)}
                         >
                             <Qrcode />
+                        </ActionIcon>
+                        <ActionIcon
+                            variant="default"
+                            onClick={addSub}
+                        >
+                            <CirclePlus />
                         </ActionIcon>
                     </Group>
                 </td>
@@ -406,7 +418,6 @@ export const LocationsManager = () => {
                         <tr>
                             <th>[+]</th>
                             <th>Name</th>
-                            <th>Letter</th>
                             <th>Product Name</th>
                             <th>Actions</th>
                         </tr>

@@ -36,7 +36,7 @@ ChartJS.register(
 const ItemRow = ({ item }: { item: Item }) => {
     return (
         <>
-            <tr>
+            <tr id={String(item.id)}>
                 <td>{item.name}</td>
                 <td>{item.sku || "None"}</td>
                 <td>{item.size}</td>

@@ -11,15 +11,87 @@ import {
     Table,
     Modal,
     ActionIcon,
-    MultiSelect
+    MultiSelect,
+    Menu,
+    Text,
+    NumberInput,
 } from "@mantine/core";
+import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash, TableExport} from "tabler-icons-react";
+import { CirclePlus, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
+import {Client} from "../../../types/client";
+import {ConfirmationModal} from "../../confirmation";
 
-export const ItemRow = ({ item }: { item: Item }) => {
+export const ItemRow = (
+    {
+        item,
+        refresh,
+    }: {
+        item: Item;
+        refresh: () => Promise<void>;
+    }
+) => {
+
+    const doDelete = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.id}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Item deleted",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to delete item",
+            color: "red",
+            title: "Error",
+        });
+    };
+
+    const addSize = async (size: string, quantity: number) => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.id}&size=${size}&quantity=${quantity}`,
+            {
+                method: "PUT",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Size added",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to add size",
+            color: "red",
+            title: "Error",
+        });
+    };
+
+    const [showConfirmationModal, setShowConfirmationModal] =
+        useState<boolean>(false);
+    const [showSizeModal, setShowSizeModal] =
+        useState<boolean>(false);
+
     return (
         <>
             <tr>
@@ -29,7 +101,19 @@ export const ItemRow = ({ item }: { item: Item }) => {
                 <td>{item.price || "undefined"}</td>
                 <td>{item.quantity}</td>
                 <td>{item.size}</td>
+                <td>
+                    <Group>
+                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                            <Trash />
+                        </ActionIcon>
+                        <ActionIcon variant="default" onClick={() => setShowSizeModal(true)}>
+                            <CirclePlus />
+                        </ActionIcon>
+                    </Group>
+                </td>
             </tr>
+            <AddSizeModal opened={showSizeModal} setOpened={setShowSizeModal} command={addSize}/>
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
 };
@@ -46,6 +130,123 @@ export const TagRow = ({ tag }: { tag: string }) => {
         </>
     );
 };
+
+
+
+const  UploadCSVModal = (
+{
+    opened,
+    setOpened,
+    refresh,
+
+}: {
+    opened: boolean;
+    setOpened: Dispatch<SetStateAction<boolean>>;
+    refresh: () => Promise<void>;
+}) => {
+    const importCSV = async (file: File) => {
+        let data = new FormData()
+        await data.append("file", file)
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/import`,
+            {
+                credentials: "include",
+                method: "POST",
+                body: data
+            }
+
+        );
+        await refresh();
+        setOpened(false)
+    };
+
+    return (
+        <>
+            <Modal
+                opened={opened}
+                onClose={() => {
+                    refresh();
+                    setOpened(false);
+                }}
+            >
+                <Dropzone
+                    multiple={false}
+                    onDrop={(file) => {importCSV(file[0])}}
+                    maxSize={3 * 1024 ** 2}
+                    accept={[MIME_TYPES.csv]}
+                    children={() => {
+
+                        return (
+                            <Group position="center" spacing="xl" style={{ minHeight: 220, pointerEvents: 'none' }}>
+
+                                <div>
+                                    <Text size="xl" inline>
+                                        Drag CSV here or click to select files
+                                    </Text>
+                                    <Text size="sm" color="dimmed" inline mt={7}>
+                                        Select CSV file containing you upload data
+                                    </Text>
+                                </div>
+                            </Group>
+                        )
+                    }}
+                />
+            </Modal>
+        </>
+    );
+}
+
+export const AddSizeModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (size: string, quantity: number)=>void;
+    }) => {
+
+    const [size, setSize] = useState('');
+    const [quantity, setQuantity] = useState(0);
+
+
+    return (
+        <>
+            <Modal
+                title={"Add Size"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Size"}
+                    placeholder="10/XL"
+                    onChange={(e) => setSize(e.target.value)}
+                />
+                <Space h="md" />
+                {/* @ts-ignore */}
+                <TextInput
+                    required
+                    label={"Quantity"}
+                    placeholder="10"
+                    type="number"
+                    onChange={(e) =>
+                        setQuantity(Number(e.target.value))
+                    }
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(size, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
+
 
 const CreateItemModal = ({
     opened,
@@ -299,12 +500,15 @@ export const ItemsManager = () => {
     const [showCreationModal, setShowCreationModal] = useState(false);
     const [showTagsModal, setShowTagsModal] = useState(false);
 
+    const [showImportModal, setShowImportModal] = useState(false);
+
+
+
+
 
     const exportCSV = async () => {
         const response = await fetch(
-            `${
-                process.env.REACT_APP_API_URL
-            }/items/export`,
+            `${process.env.REACT_APP_API_URL}/items/export?&name=${nameQuery}&sku=${skuQuery}&tags=${tagsQuery}`,
             {
                 credentials: "include",
             }
@@ -395,6 +599,11 @@ export const ItemsManager = () => {
                 refresh={fetchTags}
                 tags={tags}
             />
+            <UploadCSVModal
+                opened={showImportModal}
+                setOpened={setShowImportModal}
+                refresh={fetchItems}
+            />
             {/* @ts-ignore */}
             <Box sx={containerStyles}>
                 <Group position="apart">
@@ -475,11 +684,12 @@ export const ItemsManager = () => {
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Size</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <ItemRow key={item.id} item={item} />
+                            <ItemRow key={item.id} item={item} refresh={fetchItems} />
                         ))}
                     </tbody>
                 </Table>
@@ -499,15 +709,26 @@ export const ItemsManager = () => {
                 </Center>
                 <Space h="md" />
                 <Group position="apart">
-                    <ActionIcon
-                        sx={{
-                            height: "4rem",
-                            width: "4rem",
-                        }}
-                        onClick={exportCSV}
-                    >
-                        <TableExport />
-                    </ActionIcon>
+                    <Group spacing={0}>
+                        <ActionIcon
+                            sx={{
+                                height: "2.5rem",
+                                width: "2.5rem",
+                            }}
+                            onClick={exportCSV}
+                        >
+                            <TableExport size={"1.5rem"}/>
+                        </ActionIcon>
+                        <ActionIcon
+                            sx={{
+                                height: "2.5rem",
+                                width: "2.5rem",
+                            }}
+                            onClick={() => {setShowImportModal(true)}}
+                        >
+                            <TableImport size={"1.5rem"}/>
+                        </ActionIcon>
+                    </Group>
                     <Button
                         onClick={fetchItems}
                         color="green"

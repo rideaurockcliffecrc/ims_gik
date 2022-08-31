@@ -1,4 +1,4 @@
-import { Container, PasswordInput } from "@mantine/core";
+import {Container, PasswordInput, Text} from "@mantine/core";
 
 import styles from "../styles/Auth.module.scss";
 
@@ -7,7 +7,7 @@ import { showNotification, hideNotification } from "@mantine/notifications";
 
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 const Register = () => {
     const navigate = useNavigate();
@@ -49,7 +49,7 @@ const Register = () => {
             showNotification({
                 color: "red",
                 title: "Password Mismatch",
-                message: "Password and password confirmation do not match.",
+                message: "Password and password confirmation.tsx do not match.",
             });
             return;
         }
@@ -162,7 +162,10 @@ const Register = () => {
                             }}
                             {...form.getInputProps("agree")}
                         />
-                        <Group position="right" mt="md">
+                        <Group position="apart" mt="md">
+                            <Button component={Link} to="/login" compact variant="white">
+                                <Text color="blue" size={"xs"}>Already Registered?</Text>
+                            </Button>
                             <Button
                                 type="submit"
                                 color="green"
@@ -172,6 +175,7 @@ const Register = () => {
                             </Button>
                         </Group>
                     </form>
+
                 </Container>
             </div>
         </>

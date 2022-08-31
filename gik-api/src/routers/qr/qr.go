@@ -21,11 +21,6 @@ func GetQRCodes(c *gin.Context) {
 		text = append(text, word)
 	}
 
-	/*fmt.Print("how many-> ")
-	amount, _ := reader.ReadString('\n')
-	// convert CRLF to LF
-	amount = strings.Replace(text, "\n", "", -1)*/
-
 	pdf := gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
 	pdf.AddPage()
@@ -69,7 +64,6 @@ func GetQRCodes(c *gin.Context) {
 				if count >= max {
 					break
 				}
-				//fmt.Println("Hi")
 			}
 			if count >= max {
 				break

@@ -284,7 +284,7 @@ export const LocationComponent = ({
                             variant="default"
                             onClick={addSub}
                         >
-                            <Qrcode />
+                            <CirclePlus />
                         </ActionIcon>
                     </Group>
                 </td>

@@ -3,7 +3,6 @@ package transaction
 import (
 	"GIK_Web/database"
 	"GIK_Web/types"
-	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -216,8 +215,6 @@ func GetTransactionItems(c *gin.Context) {
 	itemCount := len(transactionItems)
 
 	transactionItemsPost := []itemsPost{}
-	fmt.Println(len(transactionItemsInfo))
-	fmt.Println(len(transactionItems))
 
 	for i := 0; i < itemCount; i++ {
 		transactionItemsPost = append(transactionItemsPost, itemsPost{

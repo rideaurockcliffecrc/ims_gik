@@ -12,17 +12,86 @@ import {
     Modal,
     ActionIcon,
     MultiSelect,
-    useMantineTheme,
+    Menu,
     Text,
+    NumberInput,
 } from "@mantine/core";
 import { Dropzone, MIME_TYPES } from '@mantine/dropzone';
 import { showNotification } from "@mantine/notifications";
 import { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { CirclePlus, Tags, Trash, TableExport, TableImport, Upload, Photo, X} from "tabler-icons-react";
+import { CirclePlus, Tags, Trash, TableExport, TableImport, Settings, Photo, MessageCircle, Search, ArrowsLeftRight } from "tabler-icons-react";
 import { containerStyles } from "../../../styles/container";
 import { Item } from "../../../types/item";
+import {Client} from "../../../types/client";
+import {ConfirmationModal} from "../../confirmation";
 
-export const ItemRow = ({ item }: { item: Item }) => {
+export const ItemRow = (
+    {
+        item,
+        refresh,
+    }: {
+        item: Item;
+        refresh: () => Promise<void>;
+    }
+) => {
+
+    const doDelete = async () => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/delete?id=${item.id}`,
+            {
+                method: "DELETE",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Item deleted",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to delete item",
+            color: "red",
+            title: "Error",
+        });
+    };
+
+    const addSize = async (size: string, quantity: number) => {
+        const response = await fetch(
+            `${process.env.REACT_APP_API_URL}/items/add/size?id=${item.id}&size=${size}&quantity=${quantity}`,
+            {
+                method: "PUT",
+                credentials: "include",
+            }
+        );
+
+        if (response.ok) {
+            showNotification({
+                message: "Size added",
+                color: "green",
+                title: "Success",
+            });
+            await refresh();
+            return;
+        }
+
+        showNotification({
+            message: "Failed to add size",
+            color: "red",
+            title: "Error",
+        });
+    };
+
+    const [showConfirmationModal, setShowConfirmationModal] =
+        useState<boolean>(false);
+    const [showSizeModal, setShowSizeModal] =
+        useState<boolean>(false);
+
     return (
         <>
             <tr>
@@ -32,7 +101,19 @@ export const ItemRow = ({ item }: { item: Item }) => {
                 <td>{item.price || "undefined"}</td>
                 <td>{item.quantity}</td>
                 <td>{item.size}</td>
+                <td>
+                    <Group>
+                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                            <Trash />
+                        </ActionIcon>
+                        <ActionIcon variant="default" onClick={() => setShowSizeModal(true)}>
+                            <CirclePlus />
+                        </ActionIcon>
+                    </Group>
+                </td>
             </tr>
+            <AddSizeModal opened={showSizeModal} setOpened={setShowSizeModal} command={addSize}/>
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Item beyond recovery."}/>
         </>
     );
 };
@@ -114,6 +195,58 @@ const  UploadCSVModal = (
         </>
     );
 }
+
+export const AddSizeModal = (
+    {
+        opened,
+        setOpened,
+        command,
+
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: (size: string, quantity: number)=>void;
+    }) => {
+
+    const [size, setSize] = useState('');
+    const [quantity, setQuantity] = useState(0);
+
+
+    return (
+        <>
+            <Modal
+                title={"Add Size"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <TextInput
+                    required
+                    label={"Size"}
+                    placeholder="10/XL"
+                    onChange={(e) => setSize(e.target.value)}
+                />
+                <Space h="md" />
+                {/* @ts-ignore */}
+                <TextInput
+                    required
+                    label={"Quantity"}
+                    placeholder="10"
+                    type="number"
+                    onChange={(e) =>
+                        setQuantity(Number(e.target.value))
+                    }
+                />
+                <Space h="md" />
+                <Group position={"right"}>
+                    <Button color="green" onClick={() => {command(size, quantity); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}
+
 
 const CreateItemModal = ({
     opened,
@@ -551,11 +684,12 @@ export const ItemsManager = () => {
                             <th>Price</th>
                             <th>Quantity</th>
                             <th>Size</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {items.map((item) => (
-                            <ItemRow key={item.id} item={item} />
+                            <ItemRow key={item.id} item={item} refresh={fetchItems} />
                         ))}
                     </tbody>
                 </Table>

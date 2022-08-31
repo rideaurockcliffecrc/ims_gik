@@ -1,26 +1,36 @@
-import {ActionIcon, Text} from "@mantine/core";
-import { openConfirmModal } from '@mantine/modals';
-import {Trash} from "tabler-icons-react";
+import { Button, Group, Modal, Text} from "@mantine/core";
+import {Dispatch, SetStateAction} from "react";
 
-export const ConfirmationModal = (command: () => Promise<void>, message: string) => {
-    console.log("Hi")
-    openConfirmModal({
 
-    title: 'Please confirm your action',
-    centered: true,
-    children: (
-        <Text size="sm">
-            hi
+export const ConfirmationModal = (
+    {
+        opened,
+        setOpened,
+        command,
+        message,
 
-        </Text>
-    ),
-
-    confirmProps: { color: 'red' },
-    labels: { confirm: 'Confirm', cancel: 'Cancel' },
-    onConfirm: () => {
-        command()
-    },
-
-    onCancel: () => {}
-
-    });}
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        command: ()=>void;
+        message: string;
+    }) => {
+    return (
+        <>
+            <Modal
+                title={"Confirmation"}
+                opened={opened}
+                onClose={() => {
+                    setOpened(false);
+                }}
+            >
+                <Text>{message}</Text>
+                <br/>
+                <Group position={"right"}>
+                    <Button color={"gray"} onClick={() => {setOpened(false);}}>Cancel</Button>
+                    <Button color={"red"} onClick={() => {command(); setOpened(false);}}>Confirm</Button>
+                </Group>
+            </Modal>
+        </>
+    );
+}

@@ -14,7 +14,7 @@ import { openConfirmModal } from '@mantine/modals';
 import { useForm } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import {CirclePlus, TableExport, TableImport, Trash} from "tabler-icons-react";
+import {CirclePlus, Refresh, TableExport, TableImport, Trash} from "tabler-icons-react";
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import {Dropzone, MIME_TYPES} from "@mantine/dropzone";
@@ -119,7 +119,8 @@ const ClientComponent = ({
         });
     };
 
-
+    const [showConfirmationModal, setShowConfirmationModal] =
+        useState<boolean>(false);
 
     return (
         <>
@@ -132,11 +133,12 @@ const ClientComponent = ({
                 <td>{client.address}</td>
                 <td>{client.balance}</td>
                 <td>
-                    <ActionIcon variant="default" onClick={() => ConfirmationModal(doDelete, "This Action Is Permanent. Are You Sure You Want To Delete")}>
+                    <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                         <Trash />
                     </ActionIcon>
                 </td>
             </tr>
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the client beyond recovery."}/>
         </>
     );
 };
@@ -438,13 +440,6 @@ const Clients = () => {
                             <TableImport size={"1.5rem"}/>
                         </ActionIcon>
                     </Group>
-                    <Button
-                        onClick={fetchClients}
-                        color="green"
-                        disabled={loading}
-                    >
-                        Refresh
-                    </Button>
                 </Group>
             </Box>
             <CreateClientModal

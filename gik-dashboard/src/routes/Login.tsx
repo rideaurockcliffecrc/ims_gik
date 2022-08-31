@@ -6,6 +6,7 @@ import {
     PasswordInput,
     Space,
     Checkbox,
+    Text,
 } from "@mantine/core";
 
 import styles from "../styles/Auth.module.scss";
@@ -15,7 +16,7 @@ import { useForm } from "@mantine/form";
 
 import { showNotification, hideNotification } from "@mantine/notifications";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -227,7 +228,11 @@ const Login = () => {
                             </Group>
                         </Group>
                     </form>
+                    <Button component={Link} to="/register" compact variant="white">
+                        <Text color="blue" size={"xs"}>Not Registered?</Text>
+                    </Button>
                 </Container>
+
             </div>
         </>
     );

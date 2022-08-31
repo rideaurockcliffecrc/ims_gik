@@ -66,8 +66,9 @@ func InitRouter() *gin.Engine {
 		itemsApi.POST("/import", items.ImportItems)
 		itemsApi.GET("/suggest", items.GetAutoSuggest)
 		itemsApi.PUT("/add", items.AddItem)
+		itemsApi.PUT("/add/size", items.AddSize)
 		itemsApi.PATCH("/update", items.UpdateItem)
-		itemsApi.DELETE("/delete", items.DeleteLocation)
+		itemsApi.DELETE("/delete", items.DeleteItem)
 	}
 
 	tagsApi := r.Group("/tags")

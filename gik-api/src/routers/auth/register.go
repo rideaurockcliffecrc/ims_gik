@@ -3,7 +3,6 @@ package auth
 import (
 	"GIK_Web/database"
 	"GIK_Web/types"
-	"fmt"
 	"time"
 
 	"github.com/alexedwards/argon2id"
@@ -74,7 +73,6 @@ func Register(c *gin.Context) {
 
 	// save the sign up code
 	if err := database.Database.Save(&signupCode).Error; err != nil {
-		fmt.Println(err)
 		c.JSON(500, gin.H{
 			"success": false,
 			"message": "Unable to update sign up code",

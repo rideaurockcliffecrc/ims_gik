@@ -4,7 +4,6 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/env"
 	"GIK_Web/types"
-	"fmt"
 	"strings"
 	"time"
 
@@ -117,10 +116,8 @@ func Login(c *gin.Context) {
 
 	if json.RememberMe {
 		days = 7
-		fmt.Println("TWO DAYS")
 	} else {
 		days = 1
-		fmt.Println("ONE DAY")
 	}
 
 	session := types.Session{

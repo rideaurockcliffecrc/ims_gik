@@ -8,12 +8,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import AuditLog from "../components/dashboard/AuditLog";
 import Scanner from "../components/dashboard/Scanner";
 import Admin from "../components/dashboard/Admin";
-import TfaSetup from "../components/dashboard/TfaSetup";
 import Settings from "../components/dashboard/Settings";
 import Inventory from "../components/dashboard/Inventory";
 import ClientsDonors from "../components/dashboard/ClientsDonors";
 import Invoice from "../components/dashboard/Invoice";
 import Transactions from "../components/dashboard/Transactions";
+import {Button, Text} from "@mantine/core";
+import {openConfirmModal} from "@mantine/modals";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -82,7 +83,6 @@ const Dashboard = () => {
 
     return (
         <>
-            <TfaSetup opened={showTfaSetup} setOpened={setShowTfaSetup} />
             <div className={styles.wrapper}>
                 <Sidebar />
                 <div className={styles.pane}>{pane}</div>

@@ -5,7 +5,6 @@ import (
 	"GIK_Web/env"
 	"GIK_Web/types"
 	"GIK_Web/utils"
-	"fmt"
 	"strings"
 	"time"
 
@@ -35,7 +34,6 @@ func CheckPasswordForLogin(c *gin.Context) {
 	if err := database.Database.Model(&types.User{}).Where(&types.User{
 		Username: json.Username,
 	}).First(&user).Error; err != nil {
-		fmt.Println(err)
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid username or password",

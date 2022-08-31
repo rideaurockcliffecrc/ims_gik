@@ -23,8 +23,8 @@ import { BsDash } from "react-icons/bs"
 import { containerStyles } from "../../styles/container";
 import { Client } from "../../types/client";
 import { Transaction, TransactionItem } from "../../types/transaction";
-import TfaSetup from "./TfaSetup";
 import {TagRow} from "./inventory/Items";
+import {ConfirmationModal} from "../confirmation";
 
 
 interface editingTransactionItem {
@@ -366,7 +366,9 @@ const TransactionComponent = ({
 
     const [showItemModal, setShowItemModal] = useState(false);
     const [items, setItems] = useState<TransactionItem[]>([]);
-    const [invoiceItems, setInvoiceItems] = useState<invoiceItem[]>([]);
+
+    const [showConfirmationModal, setShowConfirmationModal] =
+        useState<boolean>(false);
 
 
     const generateInvoice = async () => {
@@ -501,7 +503,7 @@ const TransactionComponent = ({
                 <td>{transaction.totalQuantity}</td>
                 <td>
                     <Group>
-                        <ActionIcon variant="default" onClick={doDelete}>
+                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
                             <Trash />
                         </ActionIcon>
                         <ActionIcon
@@ -525,6 +527,7 @@ const TransactionComponent = ({
                 refresh={showTransactionItems}
                 items={items}
             />
+            <ConfirmationModal opened={showConfirmationModal} setOpened={setShowConfirmationModal} command={doDelete} message={"This action is not reversible. This will permanently delete the Transaction beyond recovery."}/>
         </>
     );
 };
@@ -694,7 +697,7 @@ export const TransactionManager = () => {
                             <th>Type</th>
                             <th>Preparer</th>
                             <th>Customer</th>
-                            <th>Item</th>
+                            <th>Item Quantity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>

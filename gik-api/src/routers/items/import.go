@@ -3,7 +3,6 @@ package items
 import (
 	"GIK_Web/database"
 	"GIK_Web/types"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gocarina/gocsv"
 )
@@ -18,8 +17,6 @@ func ImportItems(c *gin.Context) {
 		})
 		return
 	}
-
-	fmt.Println(fileParent.Filename)
 
 	file, err := fileParent.Open()
 

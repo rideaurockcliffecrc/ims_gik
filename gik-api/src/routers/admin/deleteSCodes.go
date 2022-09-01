@@ -3,7 +3,6 @@ package admin
 import (
 	"GIK_Web/database"
 	"GIK_Web/types"
-	"github.com/google/uuid"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -36,16 +35,6 @@ func DeleteSignupCodes(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"success": false,
 			"message": "Invalid code ID",
-		})
-		return
-	}
-
-	code.DesignatedUsername = uuid.New().String()
-
-	if err := database.Database.Save(&code).Error; err != nil {
-		c.JSON(400, gin.H{
-			"success": false,
-			"message": "Error deleting user",
 		})
 		return
 	}

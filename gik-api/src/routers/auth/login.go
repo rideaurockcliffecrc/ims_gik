@@ -4,6 +4,7 @@ import (
 	"GIK_Web/database"
 	"GIK_Web/env"
 	"GIK_Web/types"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,14 +14,13 @@ import (
 )
 
 type loginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	//TotpCode        string `json:"totp"`
+	Username        string `json:"username" binding:"required"`
+	Password        string `json:"password" binding:"required"`
 	VerificationJWT string `json:"verificationJWT" binding:"required"`
-	RememberMe      bool   `json:"rememberMe" binding:"required"`
 }
 
 func Login(c *gin.Context) {
+	rememberMe := c.Query("remember")
 	json := loginRequest{}
 	if err := c.ShouldBindJSON(&json); err != nil {
 		c.JSON(400, gin.H{
@@ -114,7 +114,17 @@ func Login(c *gin.Context) {
 
 	var days int64
 
-	if json.RememberMe {
+	rememberMeValue, err := strconv.ParseBool(rememberMe)
+
+	if err != nil {
+		c.JSON(400, gin.H{
+			"success": false,
+			"message": "Invalid fields",
+		})
+		return
+	}
+
+	if rememberMeValue {
 		days = 7
 	} else {
 		days = 1

@@ -23,15 +23,11 @@ const Login = () => {
 
     const [loginEnabled, setLoginEnabled] = useState<boolean>(true);
 
-    const [askTfa, setAskTfa] = useState<boolean>(false);
-
-    const [topVerification, setTopVerification] = useState<string>("");
-
     const form = useForm({
         initialValues: {
             username: "",
             password: "",
-            rememberMe: "",
+            rememberMe: false,
         },
     });
 
@@ -118,7 +114,7 @@ const Login = () => {
         });
 
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/auth/login`,
+            `${process.env.REACT_APP_API_URL}/auth/login?remember=${form.values.rememberMe}`,
             {
                 method: "POST",
                 headers: {
@@ -127,9 +123,7 @@ const Login = () => {
                 body: JSON.stringify({
                     username: form.values.username,
                     password: form.values.password,
-                    //totp: form.values.totp || "",
                     verificationJWT: verification,
-                    rememberMe: form.values.rememberMe,
                 }),
                 credentials: "include",
             }

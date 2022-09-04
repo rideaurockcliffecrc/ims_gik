@@ -542,7 +542,12 @@ export const ItemsManager = () => {
         } = await response.json();
 
         if (data.success) {
-            setTags(data.data);
+            // setTags(data.data); 
+            if (data.data != null) { // hacky workaround from type error caused by data.data after a few cycles of running ItemsManager
+                setTags(data.data); 
+            } else {
+                console.log("Fix me: data.data is null so tags were not updated");
+            }
         }
     };
 

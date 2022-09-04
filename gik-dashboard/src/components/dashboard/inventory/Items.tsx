@@ -546,7 +546,7 @@ export const ItemsManager = () => {
             if (data.data != null) { // hacky workaround from type error caused by data.data after a few cycles of running ItemsManager
                 setTags(data.data); 
             } else {
-                console.log("Fix me: data.data is null so tags were not updated");
+                setTags(["Tags Unavailable"]);
             }
         }
     };

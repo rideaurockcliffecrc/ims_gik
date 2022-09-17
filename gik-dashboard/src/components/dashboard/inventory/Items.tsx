@@ -467,9 +467,10 @@ const EditTagsModal = ({
                         </tr>
                         </thead>
                         <tbody>
-                        {tags.map((tag) => (
+                        {tags.length != 0 && (
+                            tags.map((tag) => (
                             <TagRow tag={tag} />
-                        ))}
+                        )))}
                         </tbody>
                     </Table>
 

@@ -69,7 +69,7 @@ func GetInvoice(c *gin.Context) {
 
 	logoBytes, _ := ioutil.ReadFile("assets/Logo.png")
 
-	doc.SetCompany(&generator.Contact{ //TODO get company info
+	doc.SetCompany(&generator.Contact{
 		Name: "Gifts In Kind",
 		Logo: &logoBytes,
 		Address: &generator.Address{

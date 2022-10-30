@@ -565,6 +565,11 @@ export const TransactionManager = () => {
         fetchTransactions();
     }, [currentPage]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+        fetchTransactions();
+    }, [dateFilter, userFilter, typeFilter]);
+
     const doFilter = async () => {
         console.log("Filter Button Pressed");
         setTypeFilter(typeFilterEditing);
@@ -574,16 +579,8 @@ export const TransactionManager = () => {
             setDateFilter([null, null]);
         }
         setUserFilter(userFilterEditing);
-        console.log("typeFilter: "+typeFilter);
-        console.log("typeFilterEditing: "+typeFilterEditing);
-        console.log("dateFilter0: "+dateFilter?.[0]);
-        console.log("dateFilter1: "+dateFilter?.[1]);
-        console.log("dateFilterEditing0: "+dateFilterEditing?.[0]);
-        console.log("dateFilterEditing1: "+dateFilterEditing?.[1]);
-        console.log("userFilter: "+userFilter);
-        console.log("userFilter: "+userFilterEditing);
         // FIXME: there is weird bug where seting the various fields to their editing variable only occurs after the console.log(), this might be caused by async
-        fetchTransactions();
+        // fetchTransactions();
         // FIXME: the fetch doesn't actually happen after clicking the filter button, so I have to do it manually
     };
 
@@ -625,7 +622,15 @@ export const TransactionManager = () => {
 
     const fetchTransactions = async () => {
         setLoading(true);
-        console.log("fetch transactions")
+        console.log("fetch transactions 01")
+        console.log("typeFilter: "+typeFilter);
+        console.log("typeFilterEditing: "+typeFilterEditing);
+        console.log("dateFilter0: "+dateFilter?.[0]);
+        console.log("dateFilter1: "+dateFilter?.[1]);
+        console.log("dateFilterEditing0: "+dateFilterEditing?.[0]);
+        console.log("dateFilterEditing1: "+dateFilterEditing?.[1]);
+        console.log("userFilter: "+userFilter);
+        console.log("userFilterEditing: "+userFilterEditing);
         const response = await fetch(
             `${process.env.REACT_APP_API_URL}/transaction/list?page=${currentPage}&type=${typeFilter}&date=${dateFilter}&user=${userFilter}`,
             {
@@ -678,7 +683,7 @@ export const TransactionManager = () => {
                         placeholder="Client"
                         data={suggestData}
                         onChange={(value) => {
-                            setUserFilterEditing(Number(value)); // FIXME: for some reason there is a bug in which the value set is the one selected BEFORE the mouse clicks, NOT AFTER
+                            setUserFilterEditing(Number(value));
                             console.log("onChange: "+userFilterEditing);
                         }}
                     />
@@ -688,6 +693,7 @@ export const TransactionManager = () => {
                         value={typeFilterEditing}
                         onChange={(value) => {
                             setTypeFilterEditing(value);
+                            console.log("onChange: typeEditing: "+typeFilterEditing+" value: "+value);
                         }}
                         data={[
                             { label: (

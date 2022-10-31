@@ -26,11 +26,11 @@ func ListTransactions(c *gin.Context) {
 	type_ := c.Query("type")
 	date := strings.Split(c.Query("date"), ",")
 	user := c.Query("user")
-	print("date: ")
-	for _, d := range date {
-		println(" " + d + " ")
-	}
-	println()
+	// print("date: ")
+	// for _, d := range date {
+	// 	println(" " + d + " ")
+	// }
+	// println()
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -45,26 +45,27 @@ func ListTransactions(c *gin.Context) {
 
 	baseQuery := database.Database.Model(&types.Transaction{})
 	baseQuery = baseQuery.Order("timestamp desc")
-	println("type: " + type_)
+	// println("type: " + type_)
 	if type_ == "export" {
-		println("type is export")
-		baseQuery = baseQuery.Where("type == ?", 0)
+		// println("type is export")
+		baseQuery = baseQuery.Where("type = ?", 0)
 	} else if type_ == "import" {
-		println("type is import")
-		baseQuery = baseQuery.Where("type == ?", 1)
+		// println("type is import")
+		baseQuery = baseQuery.Where("type = ?", 1)
 	} else {
-		println("type is all")
+		// println("type is all")
 	}
 	if len(date) == 2 && date[0] != "" && date[1] != "" {
 		dateStartInt, err := strconv.Atoi(date[0])
+		dateStartInt -= 1
 		dateEndInt, err := strconv.Atoi(date[1])
 		dateEndInt += 86400 // To make sure the filter is inclusive of the entire end date
 		if err == nil {
-			print("date start: ")
-			println(dateStartInt)
-			print("date end: ")
-			println(dateEndInt)
-			baseQuery = baseQuery.Where("timestamp => ?", dateStartInt)
+			// print("date start: ")
+			// println(dateStartInt)
+			// print("date end: ")
+			// println(dateEndInt)
+			baseQuery = baseQuery.Where("timestamp > ?", dateStartInt)
 			baseQuery = baseQuery.Where("timestamp < ?", dateEndInt)
 		}
 	}
@@ -72,8 +73,8 @@ func ListTransactions(c *gin.Context) {
 	userInt, err := strconv.Atoi(user)
 
 	if userInt != 0 {
-		println("user: " + user)
-		baseQuery = baseQuery.Where("client_id == ?", userInt)
+		// println("user: " + user)
+		baseQuery = baseQuery.Where("client_id = ?", userInt)
 	}
 
 	totalCount := int64(0)

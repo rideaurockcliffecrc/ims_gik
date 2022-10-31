@@ -574,7 +574,7 @@ export const TransactionManager = () => {
         // console.log("Filter Button Pressed");
         setTypeFilter(typeFilterEditing);
         if (dateFilterEditing != null && dateFilterEditing[0] != null && dateFilterEditing[1] != null) {
-            setDateFilter([dateFilterEditing?.[0].getTime(), dateFilterEditing?.[1].getTime()]);
+            setDateFilter([dateFilterEditing?.[0].getTime()/1000, dateFilterEditing?.[1].getTime()/1000]);
         } else {
             setDateFilter([null, null]);
         }

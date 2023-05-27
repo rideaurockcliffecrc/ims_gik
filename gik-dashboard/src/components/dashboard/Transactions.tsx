@@ -12,6 +12,7 @@ import {
     Table,
     TextInput,
     SegmentedControl,
+    Tooltip,
 } from "@mantine/core";
 import { DateRangePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
@@ -503,21 +504,29 @@ const TransactionComponent = ({
                 <td>{transaction.totalQuantity}</td>
                 <td>
                     <Group>
-                        <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
-                            <Trash />
-                        </ActionIcon>
-                        <ActionIcon
-                            onClick={showTransactionItems}
-                            variant="default"
-                        >
-                            <ListDetails />
-                        </ActionIcon>
-                        <ActionIcon
-                            onClick={generateInvoice}
-                            variant="default"
-                        >
-                            <FileInvoice />
-                        </ActionIcon>
+                        <Tooltip label="Delete">
+                            <ActionIcon variant="default" onClick={() => setShowConfirmationModal(true)}>
+                                <Trash />
+                            </ActionIcon>
+                        </Tooltip>
+
+                        <Tooltip label="List Items">
+                            <ActionIcon
+                                onClick={showTransactionItems}
+                                variant="default"
+                            >
+                                <ListDetails />
+                            </ActionIcon>
+                        </Tooltip>
+
+                        <Tooltip label = "Generate Invoice">
+                            <ActionIcon
+                                onClick={generateInvoice}
+                                variant="default"
+                            >
+                                <FileInvoice />
+                            </ActionIcon>
+                        </Tooltip>
                     </Group>
                 </td>
             </tr>

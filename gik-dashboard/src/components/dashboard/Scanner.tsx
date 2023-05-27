@@ -25,16 +25,17 @@ interface editingTransactionItem {
     quantity: number;
 }
 
-const CreateTransactionModal = ({
-                                    opened,
-                                    setOpened,
-                                    refresh,
-                                    transactionItems,
-                                }: {
-    opened: boolean;
-    setOpened: Dispatch<SetStateAction<boolean>>;
-    refresh: () => Promise<void>;
-    transactionItems: editingTransactionItem[]
+const CreateTransactionModal = (
+    {
+        opened,
+        setOpened,
+        refresh,
+        transactionItems,
+    }: {
+        opened: boolean;
+        setOpened: Dispatch<SetStateAction<boolean>>;
+        refresh: () => Promise<void>;
+        transactionItems: editingTransactionItem[]
 }) => {
 
     const [suggestData, setSuggestData] = useState<any[]>([]);

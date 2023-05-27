@@ -120,6 +120,7 @@ const Sidebar = () => {
                     <h1
                         style={{
                             margin: "1rem",
+                            marginLeft: "2.4rem"
                         }}
                     >
                         Dashboard

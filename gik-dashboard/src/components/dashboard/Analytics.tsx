@@ -230,8 +230,6 @@ const AttentionRequired = () => {
                     height: "20rem",
                     borderRadius: "15px",
                     background: "white",
-                    boxShadow: ` 5px 5px 10px var(--neumorphism),
-                    -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
@@ -350,8 +348,6 @@ const RecentActivity = () => {
                     height: "20rem",
                     borderRadius: "15px",
                     background: "white",
-                    boxShadow: ` 5px 5px 10px var(--neumorphism),
-                        -5px -5px 10px var(--inverted-text)`,
                     padding: "1rem",
                     display: "flex",
                     flexDirection: "column",
@@ -486,8 +482,6 @@ const Analytics = () => {
                         height: "20rem",
                         borderRadius: "15px",
                         background: "white",
-                        boxShadow: ` 5px 5px 10px var(--neumorphism),
-                        -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -527,8 +521,6 @@ const Analytics = () => {
                         height: "20rem",
                         borderRadius: "15px",
                         background: "white",
-                        boxShadow: ` 5px 5px 10px var(--neumorphism),
-                        -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -570,8 +562,6 @@ const Analytics = () => {
                         height: "20rem",
                         borderRadius: "15px",
                         background: "white",
-                        boxShadow: ` 5px 5px 10px var(--neumorphism),
-                        -5px -5px 10px var(--inverted-text)`,
                         padding: "1rem",
                         display: "flex",
                         flexDirection: "column",
@@ -609,7 +599,6 @@ const Analytics = () => {
                 </Box>
                 <AttentionRequired />
                 <RecentActivity />
-                <TrendingItems />
             </Box>
         </>
     );

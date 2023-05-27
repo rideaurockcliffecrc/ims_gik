@@ -8,6 +8,7 @@
     flex-basis: 20rem;
 
     user-select: none;
+    overflow-y: auto !important;
 
     @media only screen and (max-width: 800px) {
         position: relative;

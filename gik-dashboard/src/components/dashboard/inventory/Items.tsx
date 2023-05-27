@@ -157,7 +157,7 @@ const  UploadCSVModal = (
 
         );
         await refresh();
-        setOpened(false)
+        setOpened(false);
     };
 
     return (

@@ -533,6 +533,8 @@ const TransactionComponent = ({
 };
 
 export const TransactionManager = () => {
+    const [loading, setLoading] = useState<boolean>(false);
+
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
@@ -543,7 +545,7 @@ export const TransactionManager = () => {
     const [showCreationModal, setShowCreationModal] = useState(false);
 
     const [dateFilter, setDateFilter] = useState<
-        [Date | null, Date | null] | undefined
+        [number | null, number | null] | undefined
         >();
     const [dateFilterEditing, setDateFilterEditing] = useState<
         [Date | null, Date | null] | undefined
@@ -563,9 +565,19 @@ export const TransactionManager = () => {
         fetchTransactions();
     }, [currentPage]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+        fetchTransactions();
+    }, [dateFilter, userFilter, typeFilter]);
+
     const doFilter = async () => {
+        // console.log("Filter Button Pressed");
         setTypeFilter(typeFilterEditing);
-        setDateFilter(dateFilterEditing);
+        if (dateFilterEditing != null && dateFilterEditing[0] != null && dateFilterEditing[1] != null) {
+            setDateFilter([dateFilterEditing?.[0].getTime()/1000, dateFilterEditing?.[1].getTime()/1000]);
+        } else {
+            setDateFilter([null, null]);
+        }
         setUserFilter(userFilterEditing);
     };
 
@@ -606,12 +618,23 @@ export const TransactionManager = () => {
     };
 
     const fetchTransactions = async () => {
+        setLoading(true);
+        // console.log("fetch transactions")
+        // console.log("typeFilter: "+typeFilter);
+        // console.log("typeFilterEditing: "+typeFilterEditing);
+        // console.log("dateFilter0: "+dateFilter?.[0]);
+        // console.log("dateFilter1: "+dateFilter?.[1]);
+        // console.log("dateFilterEditing0: "+dateFilterEditing?.[0]);
+        // console.log("dateFilterEditing1: "+dateFilterEditing?.[1]);
+        // console.log("userFilter: "+userFilter);
+        // console.log("userFilterEditing: "+userFilterEditing);
         const response = await fetch(
-            `${process.env.REACT_APP_API_URL}/transaction/list?page=${currentPage}`,
+            `${process.env.REACT_APP_API_URL}/transaction/list?page=${currentPage}&type=${typeFilter}&date=${dateFilter}&user=${userFilter}`,
             {
                 credentials: "include",
             }
         );
+        setLoading(false);
 
         const data: {
             success: boolean;
@@ -658,31 +681,35 @@ export const TransactionManager = () => {
                         data={suggestData}
                         onChange={(value) => {
                             setUserFilterEditing(Number(value));
+                            // console.log("onChange: "+userFilterEditing);
                         }}
                     />
                     <>
                         <Space h="md" />
                         <SegmentedControl
-                        value={typeFilter}
-                        //onChange={}
+                        value={typeFilterEditing}
+                        onChange={(value) => {
+                            setTypeFilterEditing(value);
+                            // console.log("onChange: typeEditing: "+typeFilterEditing+" value: "+value);
+                        }}
                         data={[
                             { label: (
                                     <Center>
                                         <CgExternal/>
                                         <Box>Export</Box>
                                     </Center>
-                                ), value: "false" },
+                                ), value: "export" },
                             { label: (
                                     <Center>
                                         <BsDash/>
                                     </Center>
-                                ), value: " " },
+                                ), value: "all" },
                             { label: (
                                     <Center>
                                         <CgInternal/>
                                         <Box>Import</Box>
                                     </Center>
-                                ), value: "true" },
+                                ), value: "import" },
                         ]}
                     /></>
                     <Button color="green" onClick={doFilter}>
